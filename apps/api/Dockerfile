@@ -23,5 +23,5 @@ COPY . .
 # Expose FastAPI operational port
 EXPOSE 8000
 
-# Start server using gunicorn configurations
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-c", "gunicorn_conf.py", "app.main:app"]
+# Start server using uvicorn directly
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
