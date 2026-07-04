@@ -23,5 +23,5 @@ COPY . .
 # Expose FastAPI operational port
 EXPOSE 8000
 
-# Start server using uvicorn directly
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start server using uvicorn directly with dynamic port binding
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
