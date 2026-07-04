@@ -1,0 +1,152 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, CheckCircle2, User, Brain, BarChart3, TrendingUp, Sparkles, CornerDownRight, Cpu } from "lucide-react";
+import * as motion from "framer-motion/client";
+
+export default function BranchDashboard() {
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Branch Node 4</h2>
+          <p className="text-sm text-muted-foreground mt-1">Banjara Hills Sector • Local Execution Mode</p>
+        </div>
+        <div className="flex space-x-2">
+          <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 bg-emerald-500/10 px-3 py-1 font-semibold rounded-md">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Edge Network Online
+          </Badge>
+          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 px-3 py-1 font-semibold rounded-md">
+<Brain className="w-3.5 h-3.5 mr-1.5" />
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-background border-border/40 col-span-1 shadow-sm">
+          <CardContent className="p-5 flex flex-col h-full justify-center">
+            <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mb-1">Efficiency Ratio</p>
+            <h4 className="font-black text-4xl tracking-tighter text-emerald-500">92%</h4>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-background border-border/40 col-span-1 shadow-sm">
+          <CardContent className="p-5 flex flex-col h-full justify-center">
+            <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mb-1">Local Revenue</p>
+            <div className="flex items-baseline space-x-2">
+              <h4 className="font-black text-4xl tracking-tighter">₹1.2<span className="text-xl">L</span></h4>
+            </div>
+            <p className="text-xs text-emerald-500 mt-2 flex items-center font-medium"><TrendingUp className="w-3 h-3 mr-1"/> Peak volume</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-destructive/5 border-destructive/20 col-span-2 shadow-sm group">
+          <CardContent className="p-5 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-destructive mb-1 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" /> Action Required (Protocol ID: 8X2)
+                </p>
+                <h4 className="font-bold text-xl tracking-tight text-foreground">Deficit: Amoxicillin Component</h4>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-4 gap-4">
+              <p className="text-sm text-foreground/80 max-w-sm">Local storage empty. RAG forecasting predicts 14 orders blocked today. Regional routing is staged.</p>
+              <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 font-semibold shadow-md whitespace-nowrap">
+                <Sparkles className="w-4 h-4 mr-2"/> Auto-Resolve in Terminal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="bg-background border-border/40 overflow-hidden relative shadow-md rounded-xl">
+        <div className="absolute -top-32 -right-32 p-4 opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+<Brain className="w-96 h-96" />
+        </div>
+        <CardHeader className="border-b border-border/30 bg-secondary/5 py-4 px-5">
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center space-x-2 text-lg tracking-tight font-semibold">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <span>Interactive Copilot</span>
+            </CardTitle>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider bg-background px-2 py-1 rounded border border-border/50">Terminal Live</span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 h-[500px] flex flex-col relative bg-dot-pattern">
+          
+          <div className="flex-1 overflow-y-auto p-5 space-y-6 scroll-smooth">
+            
+            <div className="flex items-start w-full">
+              <div className="bg-card border border-border/50 shadow-sm rounded-2xl rounded-tl-sm p-5 text-sm w-full max-w-[85%]">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Brain className="w-3 h-3 text-primary" />
+                  </div>
+                  <p className="font-semibold text-foreground tracking-tight">Diagnostics Engaged</p>
+                </div>
+                
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Hello Manager. Analyzing branch metrics via localized ChromaDB index. You are currently losing revenue opportunities on <span className="font-medium text-foreground">Amoxicillin 500mg</span> prescriptions.
+                </p>
+                <p className="text-muted-foreground leading-relaxed mb-5">
+                  I have routed a sub-query to the Regional AI. Branch 7 has surplus and can dispatch 80 units within 2 hours.
+                </p>
+                
+                {/* Explainable AI Block - Embedded UI */}
+                <div className="p-4 bg-background rounded-lg border border-border/40">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest block mb-3 flex items-center">
+                    <Cpu className="w-3 h-3 mr-1.5"/> Execution Reasoning
+                  </span>
+                  <div className="space-y-2 text-[13px]">
+                    <div className="flex items-start">
+                      <CornerDownRight className="w-4 h-4 mr-2 text-muted-foreground shrink-0 mt-0.5" /> 
+                      <span><strong className="text-emerald-500 font-medium">Data Trigger:</strong> Sourced from 21-day hyper-local clinical script velocity.</span>
+                    </div>
+                    <div className="flex items-start">
+                      <CornerDownRight className="w-4 h-4 mr-2 text-muted-foreground shrink-0 mt-0.5" /> 
+                      <span><strong className="text-emerald-500 font-medium">Business Impact:</strong> Prevents ₹18,200 loss in immediately pending scripts.</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mt-5">
+                  <Button size="sm" variant="outline" className="bg-background border-border/60 hover:bg-secondary text-xs">Preview Routing Log</Button>
+                  <Button size="sm" className="bg-foreground text-background shadow-md hover:bg-foreground/90 font-semibold text-xs">Authorize Dispatch</Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end w-full space-y-3 pt-4">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold px-1">Contextual Actions</span>
+              <div className="flex flex-wrap justify-end gap-2 max-w-[80%]">
+                <Badge variant="outline" className="cursor-pointer hover:bg-secondary/80 py-1.5 px-3 bg-card shadow-sm border-border/40 transition-all font-medium text-muted-foreground hover:text-foreground">
+                  <BarChart3 className="w-3.5 h-3.5 mr-1.5 opacity-70"/> Render Demand Matrix
+                </Badge>
+                <Badge variant="outline" className="cursor-pointer hover:bg-secondary/80 py-1.5 px-3 bg-card shadow-sm border-border/40 transition-all font-medium text-muted-foreground hover:text-foreground">
+                  Trace Local Margin Loss
+                </Badge>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-background border-t border-border/30">
+            <div className="relative flex items-center">
+              <input 
+                type="text" 
+                className="w-full bg-secondary/30 border border-border/50 rounded-xl py-3.5 pl-4 pr-16 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-colors placeholder:text-muted-foreground/60" 
+                placeholder="Message Copilot logic layer..." 
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <Button size="sm" className="h-8 rounded-lg bg-foreground text-background shadow-sm px-3">Enter</Button>
+              </div>
+            </div>
+          </div>
+
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
