@@ -123,13 +123,4 @@ nexus_ai/
    ```
    Open [http://localhost:3000](http://localhost:3000) inside your web browser.
 
----
 
-## 5. Prototype Accounts & Testing Credentials
-
-For mock development and validation, the `SessionContext` features standard fallback mapping for the following accounts:
-
-*   **CEO Account**: `ceo@nexuscare.com` (Unlocks global metrics, analytics maps, and telemetry trackers).
-*   **Regional Manager**: `demo@nexuscare.com` (Unlocks Hyderabad North branches, transfer requests, and region metrics).
-*   **Branch Manager**: `manager@nexuscare.com` (Unlocks local Jubilee Hills branch orders, stockout alerts, employee rosters, and customer directories).
-*   *Default Password (Mock)*: Any password (e.g., `password123`).
