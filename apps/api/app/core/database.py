@@ -1,0 +1,20 @@
+"""
+Nexus AI — Supabase Database Client
+Singleton connection using the service role key for full server-side access.
+"""
+from supabase import create_client, Client
+from app.core.config import get_settings
+
+_client: Client | None = None
+
+
+def get_supabase() -> Client:
+    """Returns a cached Supabase client instance (service-role access)."""
+    global _client
+    if _client is None:
+        settings = get_settings()
+        _client = create_client(
+            settings.SUPABASE_URL,
+            settings.SUPABASE_SERVICE_ROLE_KEY,
+        )
+    return _client
