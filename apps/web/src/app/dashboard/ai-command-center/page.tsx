@@ -159,6 +159,8 @@ const SCENARIO_NO_STEPS = [
 ];
 
 export default function AICommandCenter() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://nexusai-production-bd29.up.railway.app";
+
   const [scenario, setScenario] = useState<"YES" | "NO">("YES");
   const [stepIndex, setStepIndex] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -176,7 +178,7 @@ export default function AICommandCenter() {
   useEffect(() => {
     const fetchDbMetrics = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/dashboard/summary");
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/summary`);
         if (response.ok) {
           const data = await response.json();
           // Merge database aggregates with baseline dashboard counters
@@ -196,7 +198,7 @@ export default function AICommandCenter() {
     fetchDbMetrics();
     const interval = setInterval(fetchDbMetrics, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [API_BASE_URL]);
 
 
   const [agents, setAgents] = useState([
@@ -236,7 +238,7 @@ export default function AICommandCenter() {
     updateTelemetryForStep(selectedScenario === "YES" ? SCENARIO_YES_STEPS[0] : SCENARIO_NO_STEPS[0]);
 
     // Hit the real backend API orders checkout in the background to execute full multi-agent workflow runs
-    fetch("http://localhost:8000/api/orders/", {
+    fetch(`${API_BASE_URL}/api/orders/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
