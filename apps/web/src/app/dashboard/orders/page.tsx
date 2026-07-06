@@ -15,6 +15,8 @@ const INITIAL_ORDERS = [
   { id: "ORD-9926", time: "11:15 AM", branch: "Jubilee Hills", items: 2, total: "₹560.00", status: "Processing" },
 ];
 
+import { useSession } from "@/context/SessionContext";
+
 const BRANCHES = ["Banjara Hills", "Jubilee Hills", "Madhapur", "Gachibowli", "Secunderabad"];
 const STATUSES = ["Completed", "Completed", "Completed", "Processing"] as const;
 
@@ -29,9 +31,19 @@ function randomOrder(lastId: number) {
 }
 
 export default function OrdersPage() {
+  const { currentRole, activeBranch } = useSession();
   const [orders, setOrders] = useState(INITIAL_ORDERS);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const lastIdRef = useRef(9926);
+
+  // Filter orders based on user permission level and active branch assignment
+  const userBranchName = activeBranch ? activeBranch.name.replace(" Branch", "") : "Banjara Hills";
+  const filteredOrders = orders.filter((o) => {
+    if (currentRole === "CEO" || currentRole === "REGIONAL_MANAGER" || currentRole === "ADMIN") {
+      return true;
+    }
+    return o.branch.toLowerCase() === userBranchName.toLowerCase();
+  });
 
   // Simulate live orders coming in every 8 seconds
   useEffect(() => {
@@ -55,7 +67,7 @@ export default function OrdersPage() {
   const handleExport = () => {
     const csv = [
       ["Order ID", "Time", "Branch", "Items", "Total", "Status"],
-      ...orders.map((o) => [o.id, o.time, o.branch, o.items, o.total, o.status]),
+      ...filteredOrders.map((o) => [o.id, o.time, o.branch, o.items, o.total, o.status]),
     ]
       .map((row) => row.join(","))
       .join("\n");
@@ -101,7 +113,7 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order, i) => (
+              {filteredOrders.map((order, i) => (
                 <tr key={order.id} className={`border-b border-border/50 hover:bg-secondary/20 transition-colors ${i === 0 ? "bg-primary/5" : ""}`}>
                   <td className="px-6 py-4 font-medium font-mono text-xs">{order.id}</td>
                   <td className="px-6 py-4 text-muted-foreground">{order.time}</td>
