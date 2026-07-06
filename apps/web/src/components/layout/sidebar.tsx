@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "@/context/SessionContext";
 import {
   LayoutDashboard,
@@ -18,6 +19,8 @@ import {
 
 export function Sidebar() {
   const { currentRole, signOut } = useSession();
+  const pathname = usePathname();
+
 
   const allRoutes = [
     { label: "CEO Dashboard", icon: LayoutDashboard, href: "/dashboard", roles: ["CEO", "ADMIN"] },
@@ -57,23 +60,33 @@ export function Sidebar() {
       </div>
 
       <div className="flex-1 space-y-0.5 mt-2">
-        {visibleRoutes.map((route) => (
-          <Link
-            key={route.href}
-            href={route.href}
-            className="flex items-center justify-between px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-secondary/60 hover:text-foreground transition-all group active:scale-[0.98]"
-          >
-            <div className="flex items-center space-x-3">
-              <route.icon className="h-4 w-4 text-muted-foreground/70 group-hover:text-primary transition-colors" />
-              <span className="font-medium tracking-tight drop-shadow-sm">{route.label}</span>
-            </div>
-            {route.actionRequired && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)] animate-pulse">
-                2
-              </span>
-            )}
-          </Link>
-        ))}
+        {visibleRoutes.map((route) => {
+          const isActive =
+            route.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(route.href);
+          return (
+            <Link
+              key={route.href}
+              href={route.href}
+              className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all group active:scale-[0.98] ${
+                isActive
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <route.icon className={`h-4 w-4 transition-colors ${isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-primary"}`} />
+                <span className="font-medium tracking-tight drop-shadow-sm">{route.label}</span>
+              </div>
+              {route.actionRequired && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)] animate-pulse">
+                  2
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="pt-4 border-t border-border/40 space-y-1">
