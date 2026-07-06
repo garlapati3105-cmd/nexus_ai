@@ -58,11 +58,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     
     if (emailNorm.includes("manager")) {
       mockRole = "BRANCH_MANAGER";
-      branchName = "Jubilee Hills Branch";
-      branchCode = "H-JH01";
-      branchId = "00000000-0000-0000-0000-000000000001";
+      branchName = "Banjara Hills Branch";
+      branchCode = "NEX-HYD-001";
+      branchId = "b1111111-1111-4111-9111-111111111111";
     } else if (emailNorm.includes("demo") || emailNorm.includes("regional")) {
       mockRole = "REGIONAL_MANAGER";
+    } else if (emailNorm.includes("cashier") || emailNorm.includes("billing")) {
+      mockRole = "CASHIER";
+      branchName = "Banjara Hills Branch";
+      branchCode = "NEX-HYD-001";
+      branchId = "b1111111-1111-4111-9111-111111111111";
     } else if (
       emailNorm.includes("pharmacist") ||
       emailNorm.includes("divya") ||
@@ -74,8 +79,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     ) {
       mockRole = "PHARMACIST";
       branchName = "Banjara Hills Branch";
-      branchCode = "H-BH02";
-      branchId = "00000000-0000-0000-0000-000000000002";
+      branchCode = "NEX-HYD-001";
+      branchId = "b1111111-1111-4111-9111-111111111111";
     }
     
     setProfile({

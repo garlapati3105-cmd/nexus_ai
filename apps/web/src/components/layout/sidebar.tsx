@@ -24,6 +24,8 @@ export function Sidebar() {
 
   const allRoutes = [
     { label: "CEO Dashboard", icon: LayoutDashboard, href: "/dashboard", roles: ["CEO", "ADMIN"] },
+    { label: "POS Billing", icon: ShoppingCart, href: "/dashboard/cashier", roles: ["CASHIER", "ADMIN"] },
+    { label: "Dispensation Queue", icon: Pill, href: "/dashboard/pharmacist", roles: ["PHARMACIST", "ADMIN"] },
     { label: "Approvals", icon: CheckSquare, href: "/dashboard/approvals", actionRequired: true, roles: ["CEO", "ADMIN", "REGIONAL_MANAGER"] },
     { label: "AI Command Center", icon: BrainCircuit, href: "/dashboard/ai-command-center", roles: ["CEO", "ADMIN", "REGIONAL_MANAGER"] },
     { label: "Branch Operations", icon: Building2, href: "/dashboard/branch", roles: ["CEO", "ADMIN", "REGIONAL_MANAGER"] },

@@ -46,7 +46,8 @@ INSERT INTO roles (id, name, description) VALUES
     ('d3333333-3333-4333-a333-333333333333', 'BRANCH_MANAGER', 'Local branch manager responsible for location inventory, sales, and employee approvals.'),
     ('d4444444-4444-4444-a444-444444444444', 'PHARMACIST', 'Local branch pharmacist handling prescription audits and order creation.'),
     ('d5555555-5555-4555-a555-555555555555', 'FINANCE', 'Corporate accountant handling ledger reviews.'),
-    ('d6666666-6666-4666-a666-666666666666', 'INVENTORY', 'Regional inventory manager coordinating inter-branch transfers.');
+    ('d6666666-6666-4666-a666-666666666666', 'INVENTORY', 'Regional inventory manager coordinating inter-branch transfers.'),
+    ('d7777777-7777-4777-a777-777777777777', 'CASHIER', 'Local branch cashier handling billing and POS checkouts.');
 
 -- 5. Install basic permissions catalog
 INSERT INTO permissions (code, name, description, category) VALUES
@@ -69,6 +70,10 @@ SELECT 'd2222222-2222-4222-a222-222222222222', id FROM permissions;
 -- Map basic permissions to Pharmacist
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 'd4444444-4444-4444-a444-444444444444', id FROM permissions WHERE code IN ('inventory:view', 'orders:create', 'orders:view');
+
+-- Map basic permissions to Cashier
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 'd7777777-7777-4777-a777-777777777777', id FROM permissions WHERE code IN ('inventory:view', 'orders:create', 'orders:view');
 
 -- 6. Insert Baseline Payment Methods
 INSERT INTO payment_methods (id, name, is_active) VALUES
@@ -167,9 +172,11 @@ BEGIN
         INSERT INTO users (id, email, phone, branch_id, status)
         VALUES (temp_uuid, v_email, v_phone, v_branch_ids[mod(i, 10) + 1], 'active');
 
-        -- Assign Branch Manager to the first employee per branch, pharmacists to others
+        -- Assign Branch Manager to the first employee per branch, cashier for index 11-50, pharmacists to others
         IF (i <= 10) THEN
             INSERT INTO user_roles (user_id, role_id) VALUES (temp_uuid, 'd3333333-3333-4333-a333-333333333333');
+        ELSIF (i >= 11 AND i <= 50) THEN
+            INSERT INTO user_roles (user_id, role_id) VALUES (temp_uuid, 'd7777777-7777-4777-a777-777777777777');
         ELSE
             INSERT INTO user_roles (user_id, role_id) VALUES (temp_uuid, 'd4444444-4444-4444-a444-444444444444');
         END IF;
