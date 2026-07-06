@@ -53,6 +53,14 @@ class InventoryService:
         logger.info(f"Reserving {quantity} units of {medicine_id} at branch {branch_id}")
         return self.repo.reserve_stock(branch_id, medicine_id, quantity)
 
+    def commit_inventory(self, branch_id: str, medicine_id: str, batch_id: str, quantity: int) -> dict:
+        """Commit reserved stock, decrementing the actual quantity."""
+        return self.repo.commit_reserved_stock(branch_id, medicine_id, batch_id, quantity)
+
+    def release_inventory(self, branch_id: str, medicine_id: str, batch_id: str, quantity: int) -> dict:
+        """Release reserved stock, removing the reservation hold."""
+        return self.repo.release_reserved_stock(branch_id, medicine_id, batch_id, quantity)
+
     def find_nearest_branch_with_stock(
         self,
         current_branch_id: str,

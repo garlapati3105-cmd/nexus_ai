@@ -102,40 +102,60 @@ class WorkflowService:
             session_id=workflow_id,
         )
 
-        # ── Step 3a.2: Create Order ──────────────────────────────
-        order = self.order_svc.create_order(
-            branch_id=branch_id,
-            customer_id=customer_id,
-            items=[{
-                "medicine_id": medicine_id,
-                "batch_id": primary_batch_id,
-                "quantity": quantity,
-            }],
-        )
+        try:
+            # ── Step 3a.2: Create Order ──────────────────────────────
+            order = self.order_svc.create_order(
+                branch_id=branch_id,
+                customer_id=customer_id,
+                items=[{
+                    "medicine_id": medicine_id,
+                    "batch_id": primary_batch_id,
+                    "quantity": quantity,
+                }],
+            )
 
-        # ── Step 3a.3: Complete Order ────────────────────────────
-        self.order_svc.complete_order(order["id"])
+            # ── Step 3a.3: Complete Order ────────────────────────────
+            self.order_svc.complete_order(order["id"])
 
-        # ── Step 3a.4: Generate Invoice ──────────────────────────
-        invoice = self.order_svc.generate_invoice(order["id"], branch_id)
+            # ── Step 3a.4: Generate Invoice ──────────────────────────
+            invoice = self.order_svc.generate_invoice(order["id"], branch_id)
 
-        # ── Step 3a.5: Update Analytics ──────────────────────────
-        self.analytics_svc.record_sale(
-            branch_id=branch_id,
-            total_amount=float(order.get("total_amount", 0)),
-            items_sold=quantity,
-        )
+            # ── Step 3a.5: Update Analytics ──────────────────────────
+            self.analytics_svc.record_sale(
+                branch_id=branch_id,
+                total_amount=float(order.get("total_amount", 0)),
+                items_sold=quantity,
+            )
 
-        # ── Step 3a.6: Create Notification ───────────────────────
-        self.notif_svc.notify_branch(
-            branch_id=branch_id,
-            title="Order Completed",
-            message=f"Order {order.get('order_no', order['id'])} completed. "
-                    f"Invoice: {invoice.get('invoice_no', invoice['id'])}",
-            severity="info",
-        )
+            # ── Step 3a.6: Create Notification ───────────────────────
+            self.notif_svc.notify_branch(
+                branch_id=branch_id,
+                title="Order Completed",
+                message=f"Order {order.get('order_no', order['id'])} completed. "
+                        f"Invoice: {invoice.get('invoice_no', invoice['id'])}",
+                severity="info",
+            )
+        except Exception as e:
+            logger.error(f"[WF-{workflow_id}] Error in local order processing. Rolling back reservation. Error: {e}")
+            for res_item in reserved:
+                self.inv_svc.release_inventory(
+                    branch_id=branch_id,
+                    medicine_id=medicine_id,
+                    batch_id=res_item["batch_id"],
+                    quantity=res_item["deducted"],
+                )
+            raise e
 
-        logger.info(f"[WF-{workflow_id}] Local order completed: {order['id']}")
+        # Commit stock once all creation steps succeed
+        for res_item in reserved:
+            self.inv_svc.commit_inventory(
+                branch_id=branch_id,
+                medicine_id=medicine_id,
+                batch_id=res_item["batch_id"],
+                quantity=res_item["deducted"],
+            )
+
+        logger.info(f"[WF-{workflow_id}] Local order completed & committed: {order['id']}")
 
         return {
             "workflow_id": workflow_id,

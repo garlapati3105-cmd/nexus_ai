@@ -45,6 +45,7 @@ CREATE TABLE branches (
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT,
     name VARCHAR(255) NOT NULL,
     code VARCHAR(50) UNIQUE NOT NULL,
+    region VARCHAR(100), -- Regional designation
     address TEXT NOT NULL,
     city VARCHAR(100) NOT NULL,
     state VARCHAR(100) NOT NULL,
@@ -266,12 +267,14 @@ CREATE TABLE inventory (
     medicine_id UUID NOT NULL REFERENCES medicines(id) ON DELETE RESTRICT,
     batch_id UUID NOT NULL REFERENCES medicine_batches(id) ON DELETE RESTRICT,
     quantity INT DEFAULT 0 NOT NULL CHECK (quantity >= 0),
+    reserved_quantity INT DEFAULT 0 NOT NULL CHECK (reserved_quantity >= 0),
     reorder_level INT DEFAULT 10 NOT NULL CHECK (reorder_level >= 0),
     max_level INT CHECK (max_level >= reorder_level),
     last_stock_take TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    UNIQUE (branch_id, batch_id)
+    UNIQUE (branch_id, batch_id),
+    CONSTRAINT chk_quantity_reserved CHECK (quantity >= reserved_quantity)
 );
 
 -- Inventory Transactions Table (Double Entry Ledger of Stock Changes)
@@ -1011,3 +1014,16 @@ CREATE INDEX idx_doc_chunks_document ON document_chunks(document_id);
 -- Vector Similarity GIN / HNSW index for ChromaDB style database searches
 -- Using HNSW index for fast dot product / cosine similarity queries on OpenAI dimensions
 CREATE INDEX idx_embeddings_vector ON embeddings USING hnsw (embedding vector_cosine_ops);
+
+-- Additional missing foreign key indices for performance auditing
+CREATE INDEX idx_payments_order ON payments(order_id);
+CREATE INDEX idx_purchase_orders_supplier ON purchase_orders(supplier_id);
+CREATE INDEX idx_goods_receipt_items_receipt ON goods_receipt_items(receipt_id);
+CREATE INDEX idx_ai_messages_conversation ON ai_messages(conversation_id);
+CREATE INDEX idx_approval_steps_approval ON approval_steps(approval_id);
+CREATE INDEX idx_audit_logs_record ON audit_logs(record_id);
+
+-- GIN trigram indexes for fast fuzzy text searching
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX idx_medicines_brand_trgm ON medicines USING gin (brand_name gin_trgm_ops);
+CREATE INDEX idx_medicines_substance_trgm ON medicines USING gin (substance_name gin_trgm_ops);

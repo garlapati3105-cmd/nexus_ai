@@ -59,12 +59,12 @@ class InventoryRepository(BaseRepository):
         quantity: int,
     ) -> list[dict]:
         """
-        Decrements inventory using FEFO strategy.
-        Returns the list of inventory rows that were decremented.
-        Raises InsufficientStockException if not enough stock.
+        Increments reserved_quantity using FEFO strategy.
+        Returns the list of reserved inventory row details.
+        Raises InsufficientStockException if not enough available stock.
         """
         rows = self.check_stock(branch_id, medicine_id)
-        total_available = sum(r["quantity"] for r in rows)
+        total_available = sum(row.get("quantity", 0) - row.get("reserved_quantity", 0) for row in rows)
 
         if total_available < quantity:
             raise InsufficientStockException(branch_id, medicine_id, total_available, quantity)
@@ -76,23 +76,91 @@ class InventoryRepository(BaseRepository):
             if remaining <= 0:
                 break
 
-            batch_qty = row["quantity"]
-            deduction = min(batch_qty, remaining)
-            new_qty = batch_qty - deduction
+            available_in_batch = row.get("quantity", 0) - row.get("reserved_quantity", 0)
+            if available_in_batch <= 0:
+                continue
 
-            updated = self.update(row["id"], {"quantity": new_qty})
+            deduction = min(available_in_batch, remaining)
+            new_reserved = row.get("reserved_quantity", 0) + deduction
+
+            updated = self.update(row["id"], {"reserved_quantity": new_reserved})
             updated_rows.append({
                 "inventory_id": row["id"],
                 "batch_id": row["batch_id"],
                 "deducted": deduction,
-                "remaining": new_qty,
+                "remaining_reserved": new_reserved,
             })
             remaining -= deduction
 
         logger.info(
-            f"Reserved {quantity} units of medicine {medicine_id} at branch {branch_id}"
+            f"Incremented reserved_quantity by {quantity} for medicine {medicine_id} at branch {branch_id}"
         )
         return updated_rows
+
+    def commit_reserved_stock(
+        self,
+        branch_id: str,
+        medicine_id: str,
+        batch_id: str,
+        qty: int,
+    ) -> dict:
+        """
+        Subtracts from both quantity and reserved_quantity to finalize a sale.
+        """
+        try:
+            result = (
+                self.db.table("inventory")
+                .select("*")
+                .eq("branch_id", branch_id)
+                .eq("medicine_id", medicine_id)
+                .eq("batch_id", batch_id)
+                .execute()
+            )
+            if not result.data:
+                raise EntityNotFoundException("inventory", f"{branch_id}-{batch_id}")
+            
+            row = result.data[0]
+            new_qty = max(0, row["quantity"] - qty)
+            new_reserved = max(0, row["reserved_quantity"] - qty)
+            
+            updated = self.update(row["id"], {"quantity": new_qty, "reserved_quantity": new_reserved})
+            logger.info(f"Committed {qty} stock for batch {batch_id} at branch {branch_id} (qty={new_qty}, reserved={new_reserved})")
+            return updated
+        except Exception as e:
+            logger.error(f"commit_reserved_stock failed: {e}")
+            raise DatabaseOperationException("commit_reserved_stock", str(e))
+
+    def release_reserved_stock(
+        self,
+        branch_id: str,
+        medicine_id: str,
+        batch_id: str,
+        qty: int,
+    ) -> dict:
+        """
+        Decrements reserved_quantity to release a held checkout reservation.
+        """
+        try:
+            result = (
+                self.db.table("inventory")
+                .select("*")
+                .eq("branch_id", branch_id)
+                .eq("medicine_id", medicine_id)
+                .eq("batch_id", batch_id)
+                .execute()
+            )
+            if not result.data:
+                raise EntityNotFoundException("inventory", f"{branch_id}-{batch_id}")
+            
+            row = result.data[0]
+            new_reserved = max(0, row["reserved_quantity"] - qty)
+            
+            updated = self.update(row["id"], {"reserved_quantity": new_reserved})
+            logger.info(f"Released reservation of {qty} units for batch {batch_id} at branch {branch_id}")
+            return updated
+        except Exception as e:
+            logger.error(f"release_reserved_stock failed: {e}")
+            raise DatabaseOperationException("release_reserved_stock", str(e))
 
     def find_stock_across_network(
         self,

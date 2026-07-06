@@ -292,3 +292,25 @@ CREATE POLICY select_audit ON audit_logs
     FOR SELECT USING (
         public.is_executive_or_admin()
     );
+
+-- 14. Missing RLS lookup policies
+CREATE POLICY select_roles ON roles FOR SELECT USING (TRUE);
+CREATE POLICY select_user_roles ON user_roles FOR SELECT USING (TRUE);
+CREATE POLICY select_permissions ON permissions FOR SELECT USING (TRUE);
+CREATE POLICY select_role_permissions ON role_permissions FOR SELECT USING (TRUE);
+CREATE POLICY select_medicines ON medicines FOR SELECT USING (TRUE);
+CREATE POLICY select_medicine_batches ON medicine_batches FOR SELECT USING (TRUE);
+CREATE POLICY select_medicine_prices ON medicine_prices FOR SELECT USING (TRUE);
+CREATE POLICY select_medicine_images ON medicine_images FOR SELECT USING (TRUE);
+CREATE POLICY select_notification_preferences ON notification_preferences FOR SELECT USING (TRUE);
+CREATE POLICY select_suppliers ON suppliers FOR SELECT USING (TRUE);
+CREATE POLICY select_customer_profiles ON customer_profiles FOR SELECT USING (TRUE);
+CREATE POLICY select_invoice_items ON invoice_items FOR SELECT USING (TRUE);
+
+-- Restrict notifications to the specific user, branch, or executive admins
+CREATE POLICY select_notifications ON notifications
+    FOR SELECT USING (
+        user_id = public.get_auth_user_id() OR
+        branch_id = public.get_auth_user_branch_id() OR
+        public.is_executive_or_admin()
+    );

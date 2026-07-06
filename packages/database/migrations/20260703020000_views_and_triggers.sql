@@ -335,31 +335,58 @@ JOIN medicine_batches mb ON et.batch_id = mb.id
 JOIN inventory i ON et.inventory_id = i.id
 JOIN branches b ON i.branch_id = b.id
 JOIN medicines m ON i.medicine_id = m.id
-LEFT JOIN medicine_prices mp ON m.id = mp.medicine_id AND mp.is_active = TRUE AND (mp.branch_id = b.id OR mp.branch_id IS NULL)
+LEFT JOIN medicine_prices mp ON mp.id = (
+    SELECT id FROM medicine_prices mp2 
+    WHERE mp2.medicine_id = m.id AND mp2.is_active = TRUE 
+      AND (mp2.branch_id = b.id OR mp2.branch_id IS NULL)
+    ORDER BY (CASE WHEN mp2.branch_id = b.id THEN 1 ELSE 2 END) ASC
+    LIMIT 1
+)
 WHERE et.risk_level IN ('medium', 'high', 'critical')
 ORDER BY et.days_to_expiry ASC;
 
 -- View 3: POS Financial Branch Margin Performance Comparison
 CREATE OR REPLACE VIEW view_branch_margin_performance AS
+WITH order_aggregates AS (
+    SELECT 
+        o.branch_id,
+        COUNT(DISTINCT o.id) AS sales_count,
+        COALESCE(SUM(o.total_amount), 0.00) AS total_revenue
+    FROM orders o
+    WHERE o.status = 'completed'
+    GROUP BY o.branch_id
+),
+cost_aggregates AS (
+    SELECT 
+        o.branch_id,
+        COALESCE(SUM(oi.quantity * (
+            SELECT purchase_price FROM medicine_prices mp2
+            WHERE mp2.medicine_id = oi.medicine_id AND mp2.is_active = TRUE
+              AND (mp2.branch_id = o.branch_id OR mp2.branch_id IS NULL)
+            ORDER BY (CASE WHEN mp2.branch_id = o.branch_id THEN 1 ELSE 2 END) ASC
+            LIMIT 1
+        )), 0.00) AS total_cost
+    FROM orders o
+    JOIN order_items oi ON oi.order_id = o.id
+    WHERE o.status = 'completed'
+    GROUP BY o.branch_id
+)
 SELECT 
     b.id AS branch_id,
     b.name AS branch_name,
     b.city AS branch_city,
-    COUNT(DISTINCT o.id) AS sales_count,
-    COALESCE(SUM(o.total_amount), 0.00) AS total_revenue,
-    COALESCE(SUM(oi.quantity * mp.purchase_price), 0.00) AS total_cost,
-    COALESCE(SUM(o.total_amount), 0.00) - COALESCE(SUM(oi.quantity * mp.purchase_price), 0.00) AS net_profit,
+    COALESCE(oa.sales_count, 0) AS sales_count,
+    COALESCE(oa.total_revenue, 0.00) AS total_revenue,
+    COALESCE(ca.total_cost, 0.00) AS total_cost,
+    COALESCE(oa.total_revenue, 0.00) - COALESCE(ca.total_cost, 0.00) AS net_profit,
     CASE 
-        WHEN COALESCE(SUM(o.total_amount), 0.00) = 0 THEN 0.00
-        ELSE ROUND(((COALESCE(SUM(o.total_amount), 0.00) - COALESCE(SUM(oi.quantity * mp.purchase_price), 0.00)) / COALESCE(SUM(o.total_amount), 0.00)) * 100, 2)
+        WHEN COALESCE(oa.total_revenue, 0.00) = 0 THEN 0.00
+        ELSE ROUND(((COALESCE(oa.total_revenue, 0.00) - COALESCE(ca.total_cost, 0.00)) / COALESCE(oa.total_revenue, 0.00)) * 100, 2)
     END AS profit_margin_percentage
 FROM branches b
-LEFT JOIN orders o ON o.branch_id = b.id AND o.status = 'completed'
-LEFT JOIN order_items oi ON oi.order_id = o.id
-LEFT JOIN medicines m ON oi.medicine_id = m.id
-LEFT JOIN medicine_prices mp ON m.id = mp.medicine_id AND mp.is_active = TRUE AND (mp.branch_id = b.id OR mp.branch_id IS NULL)
-WHERE b.deleted_at IS NULL
-GROUP BY b.id, b.name, b.city;
+LEFT JOIN order_aggregates oa ON oa.branch_id = b.id
+LEFT JOIN cost_aggregates ca ON ca.branch_id = b.id
+WHERE b.deleted_at IS NULL;
 
 -- View 4: LangGraph Agent Node Orchestration Telemetry
 CREATE OR REPLACE VIEW view_ai_telemetry AS
@@ -377,3 +404,17 @@ FROM ai_agents aa
 LEFT JOIN ai_tasks at ON at.agent_id = aa.id
 LEFT JOIN ai_reasoning ar ON ar.task_id = at.id
 GROUP BY aa.id, aa.name, aa.role, aa.state, aa.model_name, aa.latency_ms, aa.flows_executed;
+
+-- Helper to sync auth.users with public.users on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.users (id, email, phone, branch_id, status)
+    VALUES (new.id, new.email, new.phone, null, 'active');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

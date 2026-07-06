@@ -21,19 +21,19 @@ VALUES (
     'active'
 );
 
--- 2. Insert 10 Hyderabad Branches
-INSERT INTO branches (id, organization_id, name, code, address, city, state, postal_code, phone, email, is_hq, status)
+-- 2. Insert 10 Hyderabad Branches (with Region support)
+INSERT INTO branches (id, organization_id, name, code, region, address, city, state, postal_code, phone, email, is_hq, status)
 VALUES
-    ('b1111111-1111-4111-9111-111111111111', '88888888-8888-4888-a888-888888888888', 'NexusCare Banjara Hills', 'NEX-HYD-001', 'Road No. 2, Banjara Hills', 'Hyderabad', 'Telangana', '500034', '+914023401122', 'banjara@nexuscare.com', TRUE, 'active'),
-    ('b2222222-2222-4222-9222-222222222222', '88888888-8888-4888-a888-888888888888', 'NexusCare Jubilee Hills', 'NEX-HYD-002', 'Road No. 36, Jubilee Hills', 'Hyderabad', 'Telangana', '500033', '+914023502233', 'jubilee@nexuscare.com', FALSE, 'active'),
-    ('b3333333-3333-4333-9333-333333333333', '88888888-8888-4888-a888-888888888888', 'NexusCare Madhapur', 'NEX-HYD-003', 'Hitec City Road, Madhapur', 'Hyderabad', 'Telangana', '500081', '+914023603344', 'madhapur@nexuscare.com', FALSE, 'active'),
-    ('b4444444-4444-4444-9444-444444444444', '88888888-8888-4888-a888-888888888888', 'NexusCare Gachibowli', 'NEX-HYD-004', 'DLF Cybercity Road, Gachibowli', 'Hyderabad', 'Telangana', '500032', '+914023704455', 'gachibowli@nexuscare.com', FALSE, 'active'),
-    ('b5555555-5555-4555-9555-555555555555', '88888888-8888-4888-a888-888888888888', 'NexusCare Begumpet', 'NEX-HYD-005', 'SP Road, Begumpet', 'Hyderabad', 'Telangana', '500016', '+914023805566', 'begumpet@nexuscare.com', FALSE, 'active'),
-    ('b6666666-6666-4666-9666-666666666666', '88888888-8888-4888-a888-888888888888', 'NexusCare Secunderabad', 'NEX-HYD-006', 'MG Road, Secunderabad', 'Hyderabad', 'Telangana', '500003', '+914023906677', 'secunderabad@nexuscare.com', FALSE, 'active'),
-    ('b7777777-7777-4777-9777-777777777777', '88888888-8888-4888-a888-888888888888', 'NexusCare Kukatpally', 'NEX-HYD-007', 'KPHB Colony Phase 3, Kukatpally', 'Hyderabad', 'Telangana', '500072', '+914024007788', 'kukatpally@nexuscare.com', FALSE, 'active'),
-    ('b8888888-8888-4888-9888-888888888888', '88888888-8888-4888-a888-888888888888', 'NexusCare Dilsukhnagar', 'NEX-HYD-008', 'Main Road, Dilsukhnagar', 'Hyderabad', 'Telangana', '500060', '+914024108899', 'dilsukhnagar@nexuscare.com', FALSE, 'active'),
-    ('b9999999-9999-4999-9999-999999999999', '88888888-8888-4888-a888-888888888888', 'NexusCare Himayatnagar', 'NEX-HYD-009', 'Himayatnagar Main Road', 'Hyderabad', 'Telangana', '500029', '+914024209900', 'himayatnagar@nexuscare.com', FALSE, 'active'),
-    ('baaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', '88888888-8888-4888-a888-888888888888', 'NexusCare Kondapur', 'NEX-HYD-010', 'Botanical Garden Road, Kondapur', 'Hyderabad', 'Telangana', '500084', '+914024301111', 'kondapur@nexuscare.com', FALSE, 'active');
+    ('b1111111-1111-4111-9111-111111111111', '88888888-8888-4888-a888-888888888888', 'NexusCare Banjara Hills', 'NEX-HYD-001', 'Central Hyderabad', 'Road No. 2, Banjara Hills', 'Hyderabad', 'Telangana', '500034', '+914023401122', 'banjara@nexuscare.com', TRUE, 'active'),
+    ('b2222222-2222-4222-9222-222222222222', '88888888-8888-4888-a888-888888888888', 'NexusCare Jubilee Hills', 'NEX-HYD-002', 'Central Hyderabad', 'Road No. 36, Jubilee Hills', 'Hyderabad', 'Telangana', '500033', '+914023502233', 'jubilee@nexuscare.com', FALSE, 'active'),
+    ('b3333333-3333-4333-9333-333333333333', '88888888-8888-4888-a888-888888888888', 'NexusCare Madhapur', 'NEX-HYD-003', 'West Hyderabad', 'Hitec City Road, Madhapur', 'Hyderabad', 'Telangana', '500081', '+914023603344', 'madhapur@nexuscare.com', FALSE, 'active'),
+    ('b4444444-4444-4444-9444-444444444444', '88888888-8888-4888-a888-888888888888', 'NexusCare Gachibowli', 'NEX-HYD-004', 'West Hyderabad', 'DLF Cybercity Road, Gachibowli', 'Hyderabad', 'Telangana', '500032', '+914023704455', 'gachibowli@nexuscare.com', FALSE, 'active'),
+    ('b5555555-5555-4555-9555-555555555555', '88888888-8888-4888-a888-888888888888', 'NexusCare Begumpet', 'NEX-HYD-005', 'North Hyderabad', 'SP Road, Begumpet', 'Hyderabad', 'Telangana', '500016', '+914023805566', 'begumpet@nexuscare.com', FALSE, 'active'),
+    ('b6666666-6666-4666-9666-666666666666', '88888888-8888-4888-a888-888888888888', 'NexusCare Secunderabad', 'NEX-HYD-006', 'North Hyderabad', 'MG Road, Secunderabad', 'Hyderabad', 'Telangana', '500003', '+914023906677', 'secunderabad@nexuscare.com', FALSE, 'active'),
+    ('b7777777-7777-4777-9777-777777777777', '88888888-8888-4888-a888-888888888888', 'NexusCare Kukatpally', 'NEX-HYD-007', 'West Hyderabad', 'KPHB Colony Phase 3, Kukatpally', 'Hyderabad', 'Telangana', '500072', '+914024007788', 'kukatpally@nexuscare.com', FALSE, 'active'),
+    ('b8888888-8888-4888-9888-888888888888', '88888888-8888-4888-a888-888888888888', 'NexusCare Dilsukhnagar', 'NEX-HYD-008', 'East Hyderabad', 'Main Road, Dilsukhnagar', 'Hyderabad', 'Telangana', '500060', '+914024108899', 'dilsukhnagar@nexuscare.com', FALSE, 'active'),
+    ('b9999999-9999-4999-9999-999999999999', '88888888-8888-4888-a888-888888888888', 'NexusCare Himayatnagar', 'NEX-HYD-009', 'Central Hyderabad', 'Himayatnagar Main Road', 'Hyderabad', 'Telangana', '500029', '+914024209900', 'himayatnagar@nexuscare.com', FALSE, 'active'),
+    ('baaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', '88888888-8888-4888-a888-888888888888', 'NexusCare Kondapur', 'NEX-HYD-010', 'West Hyderabad', 'Botanical Garden Road, Kondapur', 'Hyderabad', 'Telangana', '500084', '+914024301111', 'kondapur@nexuscare.com', FALSE, 'active');
 
 -- 3. Insert Branch Settings
 INSERT INTO branch_settings (branch_id, inventory_control_mode, auto_transfer_enabled, pricing_override_allowed)
