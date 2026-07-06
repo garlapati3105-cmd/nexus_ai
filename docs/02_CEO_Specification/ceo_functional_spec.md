@@ -24,12 +24,11 @@ The Chief Executive Officer (CEO) is the primary strategic leader of the entire 
 
 ### Strategic Goals & Business Objectives
 * **Market Expansion:** Expand market share through targeted regional establishment and network integration.
-* **Profitability:** Meet network-wide profit margin targets through auto-replenishment, dynamic markdown algorithms, and shrinkage/pricing optimization.
-* **Operational Efficiency:** Optimize the logistics pipeline, min-max stock layouts, and branch-level inventory transfer speeds.
-* **Compliance & Security:** Enforce zero-trust clinical compliance, tracking narcotics, high-value molecules, and pharmacist audits.
+* **Profitability & Rebate Optimization:** Meet network-wide profit margin targets through auto-replenishment, dynamic markdown algorithms, shrinkage optimization, and tracking supplier rebate milestones.
+* **Operational & Logistics Efficiency:** Optimize the logistics pipeline, min-max stock layouts, and inter-branch stock reallocation to mitigate expiry risks.
+* **Compliance & Security:** Enforce zero-trust clinical compliance, tracking narcotics, high-value molecules, safe hazardous disposal, and pharmacist audits.
 
 ### Governance Calendar & Operations Schedule
-The CEO’s operational responsibilities are organized into structured, cyclic activities:
 
 #### Daily Responsibilities
 * **Network Health Scan:** Review overnight sales totals, audit trails, and automatic transfer execution lists.
@@ -128,6 +127,13 @@ The dashboard provides a real-time, high-level overview of the pharmacy network'
 | **Autonomic Pipeline Audit** | `ai_tasks` | Funnel Chart | Traces AI decisions from creation to execution and manual review. |
 | **Dynamic Worklist** | `approvals`, `notifications` | Interactive Status List | Displays pending regional transfers, high-value expenditures, and compliance alerts. |
 | **Sales Performance Matrix** | `view_branch_margin_performance` | Sorted Table | Ranks branches by net profit, sales volume, and average order value. |
+| **Supplier SLA & Rebate Ledger** | `purchase_orders`, `goods_receipt_notes` | Bar & Multi-trend Chart | Tracks real-time vendor fill-rates against contract rebate goals. |
+| **Rebalancing Map** | `inventory`, `stock_transfers` | Dynamic Logistics Flowchart | Visualizes stock transfer recommendations from low to high velocity locations. |
+| **Controlled Substances Audit** | `orders`, `order_items` | Compliance Status Grid | Flags prescription missing discrepancies for restricted substances. |
+| **Hazardous Disposal Log** | `audit_logs` | Audit Progress List | Tracks certified waste destruction weight profiles and vendor uploads. |
+| **Markdown Yield Forecast Panel** | `inventory`, `medicine_batches` | Scatter Projection Plot | Details projected recovered margin under recommended dynamic discounts. |
+| **Capital Allocation Sandbox** | `branches`, `organizations` | Simulation Slider Controls | Sandbox panel designed to simulate rent or employee cost adjustments on EBITDA. |
+| **Connection Status Sync Table** | `branches`, `invoices` | Latency Grid | Lists offline or delayed transaction sync alerts for isolated branches. |
 
 ---
 
@@ -159,24 +165,24 @@ The CEO has read-only access to standard branch operations and complete read, wr
 * **Purpose:** Provides a real-time, network-wide view of inventory levels, stock values, and batch statuses.
 * **CEO Capabilities:** Track safety stock thresholds, analyze inventory run rates, and identify slow-moving or close-to-expiry stock.
 
-### C. Inter-Branch Logistics & Transfers
+### C. Inter-Branch Logistics & Rebalancing
 * **Purpose:** Manages stock reallocations between branches to optimize inventory distribution.
-* **CEO Capabilities:** Review, approve, or reject transfer proposals, and track delivery progress.
+* **CEO Capabilities:** Review, approve, or reject transfer proposals, track delivery progress, and execute automated rebalancing runs for slow-moving near-expiry items.
 
-### D. Finance & Margin Performance
-* **Purpose:** Tracks consolidated revenues, cost of goods sold (COGS), operating expenses, and margins.
-* **CEO Capabilities:** Compare branch performance, analyze profit trends, and evaluate pricing strategies.
+### D. Finance, SLA & Margin Performance
+* **Purpose:** Tracks consolidated revenues, cost of goods sold (COGS), operating expenses, margins, and supplier rebate contracts.
+* **CEO Capabilities:** Compare branch performance, verify vendor SLA fill-rates, and download dispute reports.
 
 ### E. AI Workforce Command Suite
 * **Purpose:** Oversees the platform's multi-agent system, monitoring agent activity, decision outputs, and accuracy rates.
 * **CEO Capabilities:** Adjust agent autonomy levels, review recommendations, and check explainability logs.
 
-### F. RAG Knowledge Center
+### F. RAG Knowledge Center & Compliance Core
 * **Purpose:** Stores the organization's standard operational templates, regulatory rules, and clinical compliance documents.
-* **CEO Capabilities:** Upload regulatory updates and training materials to refine AI reasoning.
+* **CEO Capabilities:** Upload regulatory updates, audit Schedule H/H1 prescription compliance, and verify hazard safe disposal certificates.
 
 ### G. Audit Logs & System Telemetry
-* **Purpose:** Tracks system activity for security, compliance, and troubleshooting purposes.
+* **Purpose:** Tracks system activity, offline connection sync latencies, and transaction logs.
 * **CEO Capabilities:** Filter logs by event category, user ID, severity rating, and timestamp.
 
 ---
@@ -210,6 +216,17 @@ The CEO has read-only access to standard branch operations and complete read, wr
 3. The CEO reviews the order details, sales forecasts, and vendor terms.
 4. The CEO either approves the order (triggering the supplier purchase) or rejects it (returning it for adjustment).
 
+### C. Automated Inter-Branch Inventory Rebalancing
+1. AI Inventory Agent flags surplus stock of high-cost items (e.g., insulin) nearing expiry in low-volume suburb stores.
+2. Agent identifies matching demand peaks in high-volume metropolitan stores.
+3. Transfers proposals are routed to the CEO's Rebalancing widget with calculated cost-savings projections.
+4. CEO clicks **Execute Bulk Rebalance** to issue stock transfer manifests automatically.
+
+### D. Scheduled Drugs Compliance Exception Review
+1. A transaction records Schedule H1 dispensing lacking a matching digital Rx ID.
+2. Compliance Core flags the invoice, raising an executive alert and logging the event in the audit trail.
+3. CEO selects the discrepancy, reviews pharmacist audit files, and issues a compliance review request or freezes dispensing permissions if necessary.
+
 ---
 
 ## 7. AI Integrations, Models & Decision Support
@@ -227,7 +244,7 @@ graph TD
 
 ### Multi-Agent Framework Detail
 * **Executive AI Agent:** Integrates data from other agents to generate concise summaries, trend analyses, and strategic options for the CEO.
-* **Finance Agent:** Analyzes transaction patterns, flags anomalies, and forecasts cash flow, revenue, and margins.
+* **Finance Agent:** Analyzes transaction patterns, flags anomalies, and forecasts cash flow, revenue, margins, and supplier SLA rebates.
 * **Inventory Agent:** Monitors stock levels, expiration risks, and lead times to calculate optimal reorder points.
 * **Regional Risk Agent:** Evaluates regional factors like transport times, local demand shifts, and regulatory changes to flag supply risks.
 
@@ -250,7 +267,8 @@ The reporting engine allows the CEO to schedule and generate comprehensive perfo
 | **Financial Ledger Closure** | Monthly / Quarterly | PDF, Excel | Revenues, COGS, margins, regional comparisons. |
 | **Inventory Obsolescence Study** | Weekly / Monthly | CSV, PDF | Expiery risks, slow-moving items, storage costs. |
 | **AI Decisions & Outcomes Report** | Monthly | PDF | Auto-resolution counts, manual overrides, system accuracy metrics. |
-| **Audit Log Compliance Ledger** | Weekly / Quarterly | PDF | Security alerts, role bypass events, database mutation histories. |
+| **Audit Log Compliance Ledger** | Weekly / Quarterly | PDF | Security alerts, role bypass events, database mutation histories, controlled substance flags. |
+| **Supplier SLA & Rebate Performance** | Quarterly | PDF, XLS | Vendor fill-rates, damage tolerances, rebate disputes. |
 
 ---
 
@@ -259,9 +277,9 @@ The reporting engine allows the CEO to schedule and generate comprehensive perfo
 The notification system uses three priority tiers to organize system alerts:
 
 * **High Priority (Critical):** Displayed as a modal alert on login. Email and SMS alerts are sent instantly.
-  * *Triggers:* Security breaches, Narcotics discrepancies, Inventory shortages of critical medicines.
+  * *Triggers:* Security breaches, Narcotics discrepancies, Inventory shortages of critical medicines, branch offline sync delay exceeding 4 hours.
 * **Medium Priority (Warning):** Added to the dashboard alert panel.
-  * *Triggers:* Expiry warnings for significant batches, Regional shipment delays.
+  * *Triggers:* Expiry warnings for significant batches, Regional shipment delays, Supplier fill-rate drops under 95%.
 * **Low Priority (Info):** Logged in the audit panel.
   * *Triggers:* Completion of routine transfers, System backups.
 
@@ -283,9 +301,10 @@ The search system index includes:
 * **Demand Forecasting:** Uses historical sales data, seasonal patterns, and regional health data to predict product-level demand.
 * **Expiry Forecasting:** Flags batches expected to expire before being sold, suggesting transfers to higher-velocity branches or promotional pricing.
 
-### Financial Analytics
+### Financial Analytics & Policy Sandbox
 * **Cost Allocation Mapping:** Breaks down operating costs, logistics fees, and COGS to calculate true item-level profitability.
 * **Margin Optimization Engine:** Recommends pricing adjustments based on demand, supplier costs, and competitor pricing.
+* **Capital Allocation Simulation:** Simulates Rent, Salary, or Markup shifts against EBITDA trends.
 
 ---
 
@@ -295,7 +314,7 @@ The security model is designed to protect sensitive pharmacy and business data.
 
 * **Authentication:** Integrated Single Sign-On (SSO) with Multi-Factor Authentication (MFA) required for all administrative access.
 * **Authorization:** Role-Based Access Control (RBAC) maps permissions to specific roles. CEO permissions are restricted to organizational views.
-* **Audit Trails:** All data modifications are logged with user ID, IP address, timestamp, and details of the change. Logs are encrypted to prevent unauthorized modification.
+* **Audit Trails & Offline Sync Safety:** All data modifications are logged with user ID, IP address, timestamp, and details of the change. Latency trackers audit offline POS synchronicity.
 
 ---
 
@@ -305,7 +324,6 @@ The CEO dashboard interacts with the backend through the following key API endpo
 
 ### GET `/api/dashboard/summary`
 * **Purpose:** Retrieves consolidated network financial and operational metrics.
-* **Query Parameters:** `period` (e.g., `30d`), `region_id` (optional).
 * **Response Schema (200 OK):**
 ```json
 {
@@ -318,31 +336,68 @@ The CEO dashboard interacts with the backend through the following key API endpo
 }
 ```
 
-### GET `/api/branches`
-* **Purpose:** Returns a list of branches with operational indicators.
+### GET `/api/finance/supplier-sla-tracker`
+* **Purpose:** Returns fill-rates, delivery latencies, and rebate metrics for all suppliers.
 * **Response Schema (200 OK):**
 ```json
 [
   {
-    "id": "b1111111-1111-4111-9111-111111111111",
-    "name": "Banjara Hills Branch",
-    "city": "Hyderabad",
-    "region": "Telangana Central",
-    "active_sku_count": 482,
-    "current_margin": 42.1
+    "supplier_id": "s1111111-2222-3333-4444-555555555555",
+    "name": "Apollo Distributors",
+    "fill_rate": 96.5,
+    "penalty_accrued": 5000.00,
+    "outstanding_rebatable_value": 150000.00
   }
 ]
 ```
 
-### POST `/api/transfers/{id}/approve`
-* **Purpose:** Approves a pending inter-branch inventory transfer.
+### GET `/api/inventory/rebalance-opportunities`
+* **Purpose:** Finds near-expiry items that can be transferred from low-sales-velocity to high-sales-velocity branches.
+* **Response Schema (200 OK):**
+```json
+[
+  {
+    "medicine_id": "m1111111-1111-1111-1111-111111111111",
+    "source_branch_name": "Suburb Branch A",
+    "target_branch_name": "City Centre Branch B",
+    "quantity": 150,
+    "expiry_date": "2026-09-30",
+    "estimated_savings_value": 45000.00
+  }
+]
+```
+
+### GET `/api/compliance/narcotics`
+* **Purpose:** Audit logs of scheduled substances matching missing prescriptions.
+* **Response Schema (200 OK):**
+```json
+[
+  {
+    "order_id": "o9999999-9999-4999-a999-999999999999",
+    "order_no": "ORD-2026-9872",
+    "branch_id": "b1111111-1111-4111-9111-111111111111",
+    "item_name": "Alprazolam 0.5mg",
+    "quantity": 30,
+    "discrepancy_details": "No Rx ID uploaded"
+  }
+]
+```
+
+### POST `/api/analytics/simulate-business-policies`
+* **Purpose:** Sandbox calculator to simulate operational changes.
+* **Request Schema:**
+```json
+{
+  "rent_multiplier": 1.05,
+  "salary_multiplier": 1.02,
+  "markup_rules": { "schedule_h1": 0.15 }
+}
+```
 * **Response Schema (200 OK):**
 ```json
 {
-  "transfer_id": "t9876543-2222-3333-4444-555555555555",
-  "status": "approved",
-  "approver": "ceo_user_id",
-  "timestamp": "2026-07-06T14:53:31Z"
+  "simulated_ebitda": 15200000.00,
+  "net_margin_variance": 0.015
 }
 ```
 
@@ -353,12 +408,13 @@ The CEO dashboard interacts with the backend through the following key API endpo
 The CEO role interacts with the following database tables:
 
 * `organizations` (Read / Update): Enterprise profile details.
-* `branches` (Read / Write / Update): Location profiles and active statuses.
+* `branches` (Read / Write / Update): Location profiles, status, sync status tracking.
 * `users` & `user_roles` (Read / Write / Update): User profiles and role assignments.
 * `invoices` & `payments` (Read-Only): Transaction records.
 * `stock_transfers` & `transfer_items` (Read / Update): Logistics and inventory relocations.
 * `ai_tasks` & `ai_reasoning` (Read / Write): AI decision tracking.
 * `audit_logs` (Read-Only): Compliance and system event logs.
+* `suppliers`, `purchase_orders`, `goods_receipt_notes` (Read-Only): Used to calculate vendor SLA performance.
 
 ---
 
@@ -398,7 +454,7 @@ During a demonstration, the CEO's workspace can be reviewed using this walkthrou
 ```
 
 1. **Secure Login:** Log in as `ceo@nexuscare.com`.
-2. **Dashboard Review:** Examine network metrics (Revenue, Margin, AI Autonomy Rate).
+2. **Dashboard Review:** Examine network metrics (Revenue, Margin, AI Autonomy Rate, and Supplier SLAs).
 3. **Resolve Pending Action:** Click an alert flagging a high-value replenishment proposal.
 4. **Audit and Decide:** Review the AI reasoning panel (sales forecast, vendor lead times) and click **Approve Spend**.
 5. **Logs Verification:** Open the Audit Logs module to verify the action has been recorded.
