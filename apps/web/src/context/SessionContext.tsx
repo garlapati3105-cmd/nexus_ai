@@ -61,8 +61,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       branchName = "Jubilee Hills Branch";
       branchCode = "H-JH01";
       branchId = "00000000-0000-0000-0000-000000000001";
-    } else if (emailNorm.includes("demo")) {
+    } else if (emailNorm.includes("demo") || emailNorm.includes("regional")) {
       mockRole = "REGIONAL_MANAGER";
+    } else if (
+      emailNorm.includes("pharmacist") ||
+      emailNorm.includes("divya") ||
+      emailNorm.includes("ganesh") ||
+      emailNorm.includes("kavitha") ||
+      emailNorm.includes("vijay") ||
+      emailNorm.includes("employee") ||
+      emailNorm.endsWith("@nexuscare.net")
+    ) {
+      mockRole = "PHARMACIST";
+      branchName = "Banjara Hills Branch";
+      branchCode = "H-BH02";
+      branchId = "00000000-0000-0000-0000-000000000002";
     }
     
     setProfile({

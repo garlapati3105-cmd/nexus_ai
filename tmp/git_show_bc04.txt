@@ -1,0 +1,24 @@
+﻿commit bc04e18072749d1b4c7a4a6422bc51a6ee0fdc0c
+Author: garlapati3105-cmd <garlapati3105@gmail.com>
+Date:   Sat Jul 4 18:00:37 2026 +0530
+
+    docs: remove mock credentials section from README
+
+diff --git a/README.md b/README.md
+index 27747f2..4d6d5b6 100644
+--- a/README.md
++++ b/README.md
+@@ -123,13 +123,4 @@ nexus_ai/
+    ```
+    Open [http://localhost:3000](http://localhost:3000) inside your web browser.
+ 
+----
+-
+-## 5. Prototype Accounts & Testing Credentials
+-
+-For mock development and validation, the `SessionContext` features standard fallback mapping for the following accounts:
+ 
+-*   **CEO Account**: `ceo@nexuscare.com` (Unlocks global metrics, analytics maps, and telemetry trackers).
+-*   **Regional Manager**: `demo@nexuscare.com` (Unlocks Hyderabad North branches, transfer requests, and region metrics).
+-*   **Branch Manager**: `manager@nexuscare.com` (Unlocks local Jubilee Hills branch orders, stockout alerts, employee rosters, and customer directories).
+-*   *Default Password (Mock)*: Any password (e.g., `password123`).
