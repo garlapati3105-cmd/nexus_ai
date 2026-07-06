@@ -19,6 +19,7 @@ To guarantee medication dispensing safety, clinical accuracy, and full regulator
 * Record dispensing events immutably in compliance logs.
 * Counsel customers on dosage, storage guidelines, and possible side effects.
 * Approve clinically appropriate generic substitutions when prescribed brands are unavailable.
+* Monitor cold chain compliance and quarantine recalled medicines immediately.
 
 ### Performance Goals & Operational KPIs
 
@@ -30,6 +31,7 @@ To guarantee medication dispensing safety, clinical accuracy, and full regulator
 | **Allergy & Interaction Check Compliance** | 100% of orders checked | Daily |
 | **Average Customer Counseling Time** | 1.5 to 3 minutes | Hourly |
 | **Generic Substitution Rate** | ≥ 15% of out-of-stock brand prescriptions | Monthly |
+| **Cold Chain Compliance** | 100% telemetry resolution compliance | Daily |
 
 ### Schedule of Operations
 
@@ -38,6 +40,7 @@ To guarantee medication dispensing safety, clinical accuracy, and full regulator
 * **Controlled Substances Handover:** Physically count and sign off on target Schedule X and narcotics stock counts inside the double-locked cabinet.
 * **Verification Queue Processing:** Continually inspect, approve, or reject active prescriptions.
 * **EOD Dispensing Audit:** Match physical prescription documents received today against digital orders. Sign off on the daily dispensing registry.
+* **Telemetry Review:** Verify refrigerator health logs for vaccine/insulin boxes.
 
 #### Weekly Responsibilities
 * **Near-Expiry Audits:** Scan cold storage and fast-moving racks for batches expiring within 90 days. Flag them for reallocation or markdown.
@@ -54,62 +57,73 @@ To guarantee medication dispensing safety, clinical accuracy, and full regulator
 ```mermaid
 flowchart TD
     OrderCreated[Customer Order Created at POS] --> Reserve[Stock Reserved in Inventory]
-    Reserve --> VerifyPrescription{Prescription Required?}
+    Reserve --> VerifyPatient[Patient Identity Verification OTP / ID Scan]
+    VerifyPatient -->|Failed| Terminate[Order Blocked]
+    VerifyPatient -->|Verified| VerifyPrescription{Prescription Required?}
     VerifyPrescription -->|Yes| RxCheck[Rx Upload & Pharmacist Verification]
     VerifyPrescription -->|No| Pick[Medicine Picking from Racks]
     RxCheck -->|Approved| Pick
-    RxCheck -->|Rejected| Terminate[Order Cancelled, Stock Released]
+    RxCheck -->|Paused| PauseState[Dispensing Pause Workflow]
+    RxCheck -->|Rejected| Terminate
+    PauseState -->|Resumed| Pick
+    PauseState -->|Cancelled| Terminate
     Pick --> BatchVerify[Scan Barcode: Batch Number Check]
-    BatchVerify --> ExpiryVerify[Expiry Date Verification]
-    ExpiryVerify --> QtyVerify[Quantity Verification]
-    QtyVerify --> Handover[Confirm Handover & Counsel]
+    BatchVerify --> ExpiryCheck{Expiry Window Verification}
+    ExpiryCheck -->|Expires < policy limit| ExpiryOverride[Clinical Note Override Required]
+    ExpiryCheck -->|Expires > policy limit| QtyVerify[Quantity Verification]
+    ExpiryOverride -->|Approved with justification| QtyVerify
+    ExpiryOverride -->|Rejected| Terminate
+    QtyVerify --> Handover[Confirm Handover & Counsel Log Checklist]
     Handover --> Deduct[Inventory Deducted & Invoice Printed]
     Deduct --> Complete[Order Completed & Analytics Updated]
 ```
 
 1. **Order Creation:** Cashier enters items in POS, creating a pending order.
 2. **Reservation:** Inventory reserves the items, changing status from `AVAILABLE` to `RESERVED`.
-3. **Rx Verification:** For Schedule H/H1/X medicines, the pharmacist inspects the uploaded prescription file.
-4. **Picking:** Pharmacist picks physical boxes from racks.
-5. **Batch/Expiry Check:** Pharmacist scans barcodes to verify batch number matches order reserve, and expiry date > 90 days.
-6. **Quantity Matching:** Verify number of pills/bottles matches prescription.
-7. **Handover & Counsel:** Pharmacist hands over medicine and reviews usage instructions with customer.
-8. **Inventory Deduction:** Final transaction records, decrementing inventory.
+3. **Patient ID Verification:** For Controlled/Scheduled drugs, pharmacist validates recipient ID.
+4. **Rx Verification:** For Schedule H/H1/X medicines, pharmacist validates uploaded prescription. Can trigger a pause if doctor confirmation is needed.
+5. **Picking:** Pharmacist retrieves items using exact rack coordinates.
+6. **Batch/Expiry Check:** Scan GS1 barcode to match batch and verify shelf life. If close to expiry, requires override justification notes.
+7. **Quantity Matching:** Verify pack size and pill quantity counts.
+8. **Handover & Counsel checklist:** Perform counseling walkthrough and collect digital checklist marks.
+9. **Final Inventory Deduction:** Deducts stock, generates compliance audit file, prints cashier receipt.
 
 ---
 
 ## 3. Pharmacist Dashboard
 
-The pharmacist dashboard focus is strictly on order verification, dispensing backlog, and clinical alerts.
+The pharmacist dashboard focus is strictly on order verification, dispensing backlog, clinical alerts, and shelf telemetry.
 
 ```
 +--------------------------------------------------------------------------+
 | [ Topbar: Branch | Dispensing Status Indicator | Notifications | Profile ]|
 +--------------------------------------------------------------------------+
 |  [ Daily Dispensed: 142 ]  [ Avg Dispense Time: 2.1m ]  [ Pending Rx: 4 ]|
+|  [ Cold Storage: 4.2°C ]   [ Recall Notices: 2 Act ]    [ Paused Orders: 3 ]|
 +--------------------------------------------------------------------------+
 |  [ Pending Dispensing Queue ]       |  [ Prescription View Component ]   |
-|  List of POS created orders        |  - Image / Patient Details        |
-|  Select to verify & dispense       |  - Doctor validation portal       |
+|  List of active order requests     |  - Image / Patient Details        |
+|  Status: Draft / Paused / Verified |  - Doctor validation portal       |
 +--------------------------------------------------------------------------+
 |  [ Medicine Stock Availability ]    |  [ Patient Safety Alerts ]        |
 |  Fast SKU lookup & batch expiry    |  - Interaction Warnings           |
+|                                     |  - Patient verification details   |
 +--------------------------------------------------------------------------+
-|  [ AI Recommendations & Guidance ]  | [ Controlled Substances Counter ]  |
+|  [ AI Recommendations & Guidance ]  | [ Cold Chain Telemetry Monitor ]   |
+|  Generic replacements & dose checks | Real-time fridge status line graph  |
 +--------------------------------------------------------------------------+
 ```
 
 ### Dashboard Widgets
 
-* **Pending Dispensing Queue:** List of orders waiting for pharmacist verification and medicine picking. Shows order draft time and customer priority.
+* **Pending Dispensing Queue:** List of orders waiting for pharmacist verification and medicine picking. Shows if order status is `DRAFT` or `PAUSED`.
 * **Prescription Queue:** Filtered list of orders containing prescription-only drugs. Select a row to load the medicine details.
-* **Reserved Inventory Count:** Counter of SKUs locked in billing but not yet dispensed.
-* **Completed Orders Count:** Running total of items dispensed during the active shift.
-* **Rejected Orders Grid:** Table of orders cancelled due to invalid doctor details or wrong prescriptions.
-* **Fast Medicine Lookup:** Search bar to check local stock levels, shelf locations, and batch number distributions.
+* **Cold Box Telemetry:** Real-time stream chart showing temperature (2–8°C threshold limits) with status indicator: `SAFE`, `WARNING`, `CRITICAL`.
+* **Recall Quarantine Workspace:** Alerts panel showing active batch recalls. Allows pharmacist to register scanned boxes directly to quarantined inventory.
+* **Patient Identity Verification Panel:** OTP trigger portal and government photo ID capture form for Schedule H1/X narcotic pickups.
+* **Paused Sessions Portal:** List of active paused orders, displaying elapsed pause duration, pause reason (e.g., `WAITING_DR_CONFIRM`), and resume button.
 * **Expiry Alerts Ring:** Red/amber status ring displaying count of branch batches expiring within 90 days.
-* **Controlled Substances Panel:** Shows stock counts of Schedule H1/X medicines. Requires physical counts verification twice daily.
-* **Patient & Doctors Detail Card:** Displays patient notes, allergics flags, and doctor license credentials for active orders.
+* **Patient & Doctors Detail Card:** Displays patient notes, allergic flags, and doctor license credentials for active orders.
 * **AI Generic Substitution Suggester:** High-confidence generic suggestions when the prescribed brand is out of stock.
 * **Notifications Feed:** Real-time push notifications for urgent medicine recalls or new high-priority queue items.
 
@@ -127,28 +141,30 @@ The pharmacist dashboard focus is strictly on order verification, dispensing bac
 | **Generic Substitutions** | Included | Excluded | Excluded | Excluded | Included |
 | **Incident Reports / Discrepancies**| Included | Included | Included | Excluded | Excluded |
 | **Reports (Dispensing Logs)** | Included | Included | Excluded | Excluded | Excluded |
+| **Cold Storage Telemetry** | Included | Excluded | Included (Reconciliation) | Excluded | Excluded |
+| **Clinical Notes & Overrides** | Included | Included | Excluded | Excluded | Included (Clinical Notes) |
 
 ---
 
 ## 5. Functional Modules
 
-### A. Dispensing Queue
-Centralized queue of draft POS orders. Displays order age, customer name, and number of items. Selecting an order locks it to the active pharmacist.
+### A. Dispensing Queue (with Paused State support)
+Centralized queue of draft POS orders. Displays order age, customer name, and number of items. Paused orders remain pinned with green resume flags.
 
 ### B. Prescription Verification Portal
-Interactive split-screen interface showing the digital prescription image on the left and order items on the right. BM validates physician registration ID and expiration date.
+Interactive split-screen interface showing the digital prescription image on the left and order items on the right. Validate physician registration ID and expiration date.
 
-### C. Medicine Information & Substitution Engine
-Lookup tool for any catalog SKU, detailing instructions, drug interactions, contraindications, and active equivalents.
+### C. Clinical Note Override Panel
+Provides text capture modal to log clinical notes, doctor confirmations, and explanations for safety warnings or near-expiry batches.
 
-### D. Customer Medical Profile
-Searchable database of customer profiles detailing active prescriptions, chronic illnesses, allergies, and past orders.
+### D. Cold Storage Telemetry Dashboard
+Continuous monitoring view displaying temperature and humidity sensors log. Out of range thresholds trigger alarms.
 
-### E. Batch & Expiry Auditor
-Barcode scanner interface for matching picked medicines against database batch statuses. Blocks expired or recalled inventory from checkout.
+### E. Batch Recall Quarantine System
+Dedicated portal to search CDSCO or manufacturer recall notices, pick affected batch numbers, scan boxes to move stock, and isolate items from retail POS.
 
-### F. Reports & Logs Engine
-Allows the pharmacist to export daily dispensing summaries and Schedule H1 ledger entries.
+### F. Patient Verification Hub
+Enables sending and confirming customer OTP verification codes, and scanning recipient ID cards for controlled substance records.
 
 ---
 
@@ -180,16 +196,23 @@ sequenceDiagram
 * **Step 1 (Shelf Pick):** System shows exact rack coordinate (e.g., A5-Rack 2). Pharmacist retrieves physical box.
 * **Step 2 (Scan Match):** Scans product GS1 barcode.
 * **Step 3 (Batch Validation):** Barcode validation confirms picked batch number matches reserved batch in database.
-* **Step 4 (Expiry Lock):** If batch expiry date is less than current date, system triggers a loud audio-visual warning and freezes transaction.
+* **Step 4 (Expiry Policy Check):** If batch expiry date is less than configured minimum shelf-life policy (e.g., 60 days), the checkout blocks and prompts for a manual clinical justification note or a batch swap.
 
 ### Handover Protocol
-* Confirm patient identity via phone number verification.
-* Print and apply dosage instruction labels directly onto package.
-* Handover medicine and verify signature for Schedule H1/X substances.
+* Execute customer identity verification (OTP check or photobank ID scan).
+* Display and verify counseling checklist.
+* Print dosage instruction labels and finalize checkout.
 
 ---
 
 ## 8. Patient Safety & Clinical Decision Support
+
+### Near-Expiry Shelf-Life Policies
+The branch enforces minimum shelf-life limits per medicine category before allocation is allowed:
+* **Standard Category:** Minimum 60 days remaining shelf life.
+* **Pediatric Liquids:** Minimum 90 days remaining shelf life.
+* **Chronic Care Categories (Insulin, Cardiovascular):** Minimum 120 days remaining shelf life.
+* Scans violating these rules prompt a blocking modal requiring the pharmacist to input a clinical note justification (e.g., "Short course of 5 days, patient counselled and agreed").
 
 ### Automated Contraindication Engine
 * **Drug-Drug Interactions:** Flags dangerous combinations (e.g., Sildenafil + Nitroglycerin).
@@ -198,28 +221,16 @@ sequenceDiagram
 * **Pregnancy Alerts:** Blocks Category X drugs for pregnant patients.
 * **Age Restrictions:** Warns or blocks pediatric usage for adult-formulated pills.
 
-```
-+-------------------------------------------------------------+
-|               🚨 DRUG INTERACTION ALERT                      |
-+-------------------------------------------------------------+
-|  Detected: Sildenafil (Active Order) + Nitroglycerin (Rx)   |
-|  Severity: CRITICAL                                         |
-|  Risk: Dangerous blood pressure drop.                       |
-+-------------------------------------------------------------+
-|  [ Cancel Order ]                    [ Override with Note ] |
-+-------------------------------------------------------------+
-```
-
 ---
 
 ## 9. Customer Interaction & Counselling
 
-The counseling checklist is integrated into the final dispense confirmation screen:
-* **Dosage & Frequency:** Clarify when to take (e.g., before/after food).
-* **Storage Instructions:** Highlight cold chain requirements (insulin at 2–8°C).
-* **Missed Dose Action:** Advise what to do if a dose is missed.
-* **Common Side Effects:** Warn about drowsiness or nausea precautions.
-* **Adherence Reminder:** Set up automated text alerts for refill cycles.
+The counseling checklist is digitally checked off before final release:
+* **Dosage & Frequency:** [ ] Checked duration instructions (e.g., take 1 before sleep).
+* **Storage Instructions:** [ ] Checked if cold chain maintenance is required.
+* **Missed Dose Action:** [ ] Confirmed guidance in case of missed intake.
+* **Side Effect Awareness:** [ ] Notified about drowsiness, nausea, or dizziness risks.
+* **Digital counseling sign-off:** Logged digital acknowledgment matching transaction records.
 
 ---
 
@@ -243,6 +254,8 @@ The counseling checklist is integrated into the final dispense confirmation scre
 * **H1 Compliance Registry:** Formats and prints Schedule H1 book containing details of buyer name, doctor, and molecules.
 * **Near Expiry Log:** List of batches within 90 days.
 * **Safety Override Logs:** Audit log of safety interaction warnings bypassed by the pharmacist (including notes).
+* **Cold Storage Log:** 30-day historical log of temperatures, sensor outages, and temperature excursion exceptions.
+* **Recall Quarantine Log:** Details of quarantined medicines, batch numbers, total vials segregated, and disposal reference.
 
 ---
 
@@ -252,6 +265,7 @@ The counseling checklist is integrated into the final dispense confirmation scre
 * **Medicine Recall:** Immediate full-screen alert blocking recalled batch barcode scans.
 * **Cold Storage Break:** Alert triggered when refrigerator temperature leaves the 2–8°C range.
 * **Low Stock Alarm:** Triggers when essential emergency molecules drop below safety limits.
+* **Temperature Sensor Error:** High priority alert when thermocouple loses heartbeat for >10 mins.
 
 ---
 
@@ -261,6 +275,7 @@ Index scope covers:
 * **Medicines:** Generic name, brand, chemical type, schedule, available batch list.
 * **Customers:** Medical history, phone number, old prescriptions.
 * **Dispensing History:** Past verified orders filtering by pharmacist id or date.
+* **Quarantined Batches:** List of all isolated inventories by recall reference.
 
 ---
 
@@ -302,7 +317,7 @@ Index scope covers:
 ```
 
 ### POST `/api/pharmacist/dispense`
-* **Purpose:** Validates scans, logs signatures, and updates database inventory.
+* **Purpose:** Validates scans, logs signatures, checks counseling checklists, and updates inventory.
 * **Request Body:**
 ```json
 {
@@ -310,7 +325,12 @@ Index scope covers:
   "pharmacist_signature": "d2222222...",
   "items": [
     { "medicine_id": "m1111...", "batch_no": "B20261101", "quantity": 10 }
-  ]
+  ],
+  "counseling_confirmed": {
+    "dosage_explained": true,
+    "storage_explained": true,
+    "warnings_explained": true
+  }
 }
 ```
 * **Response (200 OK):**
@@ -318,40 +338,91 @@ Index scope covers:
 { "status": "DISPENSED", "invoice_id": "i3333333..." }
 ```
 
-### POST `/api/pharmacist/orders/{order_id}/reject`
-* **Purpose:** Rejects prescription order, releasing stock.
+### POST `/api/pharmacist/dispense/{order_id}/pause`
+* **Purpose:** Pauses active checkout session, moving status to `PAUSED` and caching active inventory lock.
 * **Request Body:**
 ```json
-{ "rejection_code": "EXPIRED_RX", "reason": "Date shows 2025-10" }
+{ "pause_reason": "WAITING_DR_CONFIRM" }
 ```
 * **Response (200 OK):**
 ```json
-{ "status": "REJECTED", "order_id": "o1111...", "stock_released": true }
+{ "order_id": "o1111...", "status": "PAUSED", "paused_at": "2026-07-06T16:41:48Z" }
+```
+
+### POST `/api/pharmacist/dispense/{order_id}/resume`
+* **Purpose:** Resumes a paused checkouts queue card transaction.
+* **Response (200 OK):**
+```json
+{ "order_id": "o1111...", "status": "ACTIVE" }
+```
+
+### GET `/api/pharmacist/cold-chain/status`
+* **Purpose:** Returns current temperature telemetry status.
+* **Response (200 OK):**
+```json
+{
+  "box_id": "box_9921",
+  "temperature": 4.2,
+  "status": "HEALTHY",
+  "last_updated": "2026-07-06T16:40:00Z"
+}
+```
+
+### POST `/api/pharmacist/recalls/{recall_id}/quarantine`
+* **Purpose:** Isolates recalled medicine items and changes status inside DB.
+* **Request Body:**
+```json
+{ "batch_no": "B202611", "units_quarantined": 45 }
+```
+* **Response (200 OK):**
+```json
+{ "quarantine_id": "q1101...", "status": "QUARANTINED" }
 ```
 
 ---
 
 ## 17. Database Tables Accessed
 
-* `orders` & `order_items` (Read / Update): Updates order status.
-* `inventory` & `medicine_batches` (Read / Update): Reduces quantity.
-* `prescriptions` (Read / Write / Update): Links digitized prescription documents.
-* `audit_logs` (Write-Only): Immutable log of validation events.
+### `cold_chain_telemetry`
+* **Schema:** (`id` uuid, `branch_id` uuid, `box_name` varchar, `temperature` numeric, `humidity` numeric, `timestamp` timestamp, `status` varchar)
+
+### `recall_quarantine_logs`
+* **Schema:** (`id` uuid, `recall_id` uuid, `branch_id` uuid, `batch_no` varchar, `units_quarantined` int, `quarantined_by` uuid, `timestamp` timestamp)
+
+### `dispensing_sessions`
+* **Schema:** (`id` uuid, `order_id` uuid, `pharmacist_id` uuid, `state` varchar, `pause_reason` varchar, `paused_at` timestamp, `resumed_at` timestamp)
+
+### `clinical_overrides`
+* **Schema:** (`id` uuid, `order_id` uuid, `pharmacist_id` uuid, `override_type` varchar, `override_note` text, `timestamp` timestamp)
+
+### `counseling_logs`
+* **Schema:** (`id` uuid, `order_id` uuid, `pharmacist_id` uuid, `dosage_explained` bool, `storage_explained` bool, `warnings_explained` bool, `timestamp` timestamp)
 
 ---
 
 ## 18. UI / UX Design
 
-* **Dispensing Screen:** Three columns: Column 1 (Pending queue), Column 2 (Active prescription scan), Column 3 (Order verification and scanner confirmation checklist).
-* **Accessibility:** Large typeface contrast. Clean, visible markers for warnings (Drug Interaction alerts are red, Warnings are amber).
+### Telmetry Display View
+* Single line chart monitoring cold storage environment temperature points. Warnings overlay color shifts to yellow (temp > 8°C) or flashing red (temp > 10°C).
+
+### Dispensing Screen (Pause Support)
+* Active column displays order cards split-pane. A prominent "Pause Dispense" button floats on the right of prescription view cards. Paused orders display as gray tiles in column queue.
 
 ---
 
 ## 19. Real-World Pharmacy Use Cases
 
-* **Controlled Drugs (Schedule X):** Pharmacist reviews hard copy prescription, matches physical and digital scans, logs doctor registration ID, opens double-locked cabinet for Schedule X drug, scans barcode, and completes transaction.
-* **Generic Substitution:** Prescribed drug is OOS. Pharmacist validates generic equivalency, prompts customer, updates transaction item to generic counterpart, and completes transaction.
-* **Partial Dispensing:** Customer requests only 5 tablets of a 10-tablet prescription. Pharmacist adjusts quantity downwards, updates inventory reservation, dispenses 5 units, and records discrepancy.
+### Scenario 1: Temperature Excursion Incident
+* **Situation:** Refrigerator temperature rises to 9.5°C during hot season.
+* **Pharmacist Action:** Dashboard emits warning tone. Pharmacist opens "Cold Chain Widget", identifies critical reading. Verifies problem (door was left ajar), closes it. Moves sensitive assets to auxiliary cooler cabinet, then reconciles the incident by logging explanation and resolving event status.
+
+### Scenario 2: Paused Order Processing
+* **Situation:** Customer comes to retrieve a prescribed sedative. The pharmacist notices the daily dose limits are exceeded.
+* **Pharmacist Action:** Pharmacist hits "Pause Dispense", selecting reason as `WAITING_DR_CONFIRM`. The session caches and free locks the cashier drawer. Pharmacist calls doctor to clarify. After 15 minutes, physician justifies dosing. Pharmacist adds Clinical Notes override, resumes the order card, scans the batch code, and clicks final checkout dispense.
+
+### Scenario 3: Medicine Recall Event
+* **Situation:** Central office alerts pharmacy of CDSCO manufacturer recall of batch B202611 for Ibuprofen.
+* **Pharmacist Action:** Search shows 45 packs of that batch remaining inside store grid shelves. Pharmacist brings them to counter, navigates to "Quarantine" dashboard widget, scans product barcodes. The system matches and locks this batch from transactional checkout. Pharmacist places boxes in the back quarantined shelf.
 
 ---
 
@@ -364,13 +435,16 @@ Index scope covers:
 [Active Queue] <-- Click row "ORD-2026-8812" <--- [Pending Queue]
       |
       v
-[Split Screen] --> Verify prescription image matches item count
+[OTP Prompt] --> Ask patient for OTP --> Verify identity match
       |
       v
-[Pick & Scan] --> Scan box barcode --> Match batch & expiry dates
+[Split Screen] --> Verify prescription matches item count
       |
       v
-[Counsel Box] --> Confirm dosage instructions --> Click Dispense
+[Pick & Scan] --> Scan box barcode --> Match batch & shelf life rules
+      |
+      v
+[Counsel Box] --> Complete counseling checklist --> Click Dispense
       |
       v
 [Receipt View] --> Confirm print invoice --> Inventory updated
@@ -380,18 +454,19 @@ Index scope covers:
 
 ## 21. Acceptance Criteria
 
-* **Safety Block:** If an expired batch is scanned during picking, system must block invoice generation.
+* **Safety Block:** If an expired or recalled batch is scanned during picking, system must block invoice generation.
 * **Dispense Latency:** Under 3 seconds to commit final stock updates and print invoice.
 * **Prescription Audit:** Every Schedule H1/X order must have a verified doctor registry ID saved.
-* **Automatic Rollback:** If network connection fails during dispensing API execution, rollback transaction.
+* **Recall Lock:** Recalled batches must be immediately blocked from checkout.
+* **Cold Storage Heartbeat:** If thermocouple data drops connection for > 15 minutes, notify pharmacist immediately.
 
 ---
 
 ## 22. Edge Cases
 
 * **Doctor Registry Issues:** National registry service is down. Pharmacist can perform temporary override by entering license ID manually.
-* **Simultaneous Pick Conflict:** Two pharmacists attempt to scan and dispense the same medicine batch. The system uses row locks to process the first scanner and rejects the second with an "Item stock locked" message.
-* **Customer Return Attempt:** Safe clinical regulations require blocking all returns on dispensed insulin or cold chain products once they leaves store environment.
+* **Partial Dispensing:** Customer requests only 5 tablets of a 10-tablet prescription. Pharmacist adjusts quantity downwards, updates inventory reservation, dispenses 5 units, and records discrepancy.
+* **Recall During Active Order:** If recall is published mid-picking, database blocks transaction on scanned checkout barcode matching.
 
 ---
 
