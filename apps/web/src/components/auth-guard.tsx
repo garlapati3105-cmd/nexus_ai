@@ -49,7 +49,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!user && !hasLegacyAuth) {
     // Redirect to login (full reload to clear all state)
     if (typeof window !== "undefined") {
-      window.location.href = "/login";
+      setTimeout(() => { window.location.href = "/login"; }, 0);
     }
     return <LoadingSpinner label="Redirecting to Login..." />;
   }
