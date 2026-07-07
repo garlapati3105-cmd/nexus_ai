@@ -44,7 +44,7 @@ interface Order {
 }
 
 export default function PharmacistDashboard() {
-  const { currentRole } = useSession();
+  const { currentRole, activeBranch } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -58,7 +58,10 @@ export default function PharmacistDashboard() {
   const fetchPendingOrders = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/pharmacist/orders`);
+      const url = activeBranch?.id
+        ? `${API_BASE_URL}/pharmacist/orders?branch_id=${activeBranch.id}`
+        : `${API_BASE_URL}/pharmacist/orders`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -73,7 +76,10 @@ export default function PharmacistDashboard() {
   const fetchHistory = async () => {
     setIsHistoryLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/pharmacist/history`);
+      const url = activeBranch?.id
+        ? `${API_BASE_URL}/pharmacist/history?branch_id=${activeBranch.id}`
+        : `${API_BASE_URL}/pharmacist/history`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setHistoryOrders(data);
@@ -85,12 +91,16 @@ export default function PharmacistDashboard() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (activeTab === "pending") {
-      fetchPendingOrders();
-    } else {
-      fetchHistory();
-    }
+    const timer = setTimeout(() => {
+      if (activeTab === "pending") {
+        fetchPendingOrders();
+      } else {
+        fetchHistory();
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [activeTab]);
 
   const handleDispense = async (orderId: string) => {

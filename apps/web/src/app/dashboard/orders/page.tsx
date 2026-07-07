@@ -37,12 +37,24 @@ export default function OrdersPage() {
   const lastIdRef = useRef(9926);
 
   // Filter orders based on user permission level and active branch assignment
-  const userBranchName = activeBranch ? activeBranch.name.replace(" Branch", "") : "Banjara Hills";
+  const userBranchName = activeBranch
+    ? activeBranch.name
+        .toLowerCase()
+        .replace(/nexuscare\s+/g, "")
+        .replace(/\s+branch/g, "")
+        .trim()
+    : "banjara hills";
+
   const filteredOrders = orders.filter((o) => {
     if (currentRole === "CEO" || currentRole === "REGIONAL_MANAGER" || currentRole === "ADMIN") {
       return true;
     }
-    return o.branch.toLowerCase() === userBranchName.toLowerCase();
+    const orderBranchNormalized = o.branch
+      .toLowerCase()
+      .replace(/nexuscare\s+/g, "")
+      .replace(/\s+branch/g, "")
+      .trim();
+    return orderBranchNormalized === userBranchName;
   });
 
   // Simulate live orders coming in every 8 seconds

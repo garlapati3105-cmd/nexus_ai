@@ -20,14 +20,16 @@ class RejectRequest(BaseModel):
     order_id: UUID
 
 @router.get("/orders")
-def list_pending_orders():
+def list_pending_orders(branch_id: UUID = None):
     """Retrieve all pending orders (Ready for Dispensing queue)."""
     db = get_supabase()
     try:
         # Fetch pending orders
-        result = db.table("orders") \
-            .select("*, branches(name), customers(first_name, last_name)") \
-            .eq("status", "pending") \
+        query = db.table("orders") \
+            .select("*, branches(name), customers(first_name, last_name)")
+        if branch_id:
+            query = query.eq("branch_id", str(branch_id))
+        result = query.eq("status", "pending") \
             .order("created_at", desc=True) \
             .execute()
         
@@ -185,8 +187,13 @@ def reject_dispensing(req: RejectRequest):
         # 3. Mark order as cancelled
         db.table("orders").update({"status": "cancelled"}).eq("id", order["id"]).execute()
 
-        # 4. Sync invoice status to failed/cancelled
-        db.table("invoices").update({"status": "failed"}).eq("order_id", order["id"]).execute()
+        # 4. Handle Invoice and construct Refund Loop if payment was collected at POS
+        inv_res = db.table("invoices").select("id, status").eq("order_id", order["id"]).execute()
+        if inv_res.data:
+            invoice_record = inv_res.data[0]
+            new_status = "refunded" if invoice_record["status"] == "paid" else "failed"
+            db.table("invoices").update({"status": new_status}).eq("id", invoice_record["id"]).execute()
+
 
         notif_svc.notify_branch(
             branch_id=order["branch_id"],
@@ -208,13 +215,15 @@ def reject_dispensing(req: RejectRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history")
-def list_history():
+def list_history(branch_id: UUID = None):
     """Retrieve history of completed/finalized pharmacist checkouts."""
     db = get_supabase()
     try:
-        result = db.table("orders") \
-            .select("*, branches(name), customers(first_name, last_name)") \
-            .in_("status", ["completed", "cancelled"]) \
+        query = db.table("orders") \
+            .select("*, branches(name), customers(first_name, last_name)")
+        if branch_id:
+            query = query.eq("branch_id", str(branch_id))
+        result = query.in_("status", ["completed", "cancelled"]) \
             .order("updated_at", desc=True) \
             .limit(50) \
             .execute()
