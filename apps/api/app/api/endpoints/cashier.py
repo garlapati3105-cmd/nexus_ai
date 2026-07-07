@@ -45,7 +45,7 @@ def get_customers(search: Optional[str] = None):
     """Retrieve list of registered customers, optionally filtered by phone or name."""
     db = get_supabase()
     try:
-        query = db.table("customers").select("*").eq("deleted_at", None)
+        query = db.table("customers").select("*").is_("deleted_at", "null")
         if search:
             # Simple query logic on phone or first_name
             query = query.or_(f"phone.ilike.%{search}%,first_name.ilike.%{search}%")

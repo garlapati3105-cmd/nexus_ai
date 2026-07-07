@@ -40,7 +40,7 @@ def direct_dispense(req: DirectDispenseRequest):
         last_name = req.last_name.strip()
 
         customer_id = None
-        cust_res = db.table("customers").select("id").eq("phone", phone).eq("deleted_at", None).execute()
+        cust_res = db.table("customers").select("id").eq("phone", phone).is_("deleted_at", "null").execute()
         if cust_res.data:
             customer_id = cust_res.data[0]["id"]
         else:
@@ -171,8 +171,8 @@ def direct_dispense(req: DirectDispenseRequest):
             "order_id": order["id"],
             "branch_id": str(req.branch_id),
             "invoice_no": f"INV-{random.randint(100000, 999999)}",
-            "amount_due": 0.0,
-            "amount_paid": order["total_amount"],
+            "total_tax": float(order["tax_amount"]),
+            "total_amount": float(order["total_amount"]),
             "status": "paid"
         }
         db.table("invoices").insert(invoice_data).execute()
