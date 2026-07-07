@@ -212,6 +212,32 @@ export default function AICommandCenter() {
   const activeSteps = scenario === "YES" ? SCENARIO_YES_STEPS : SCENARIO_NO_STEPS;
   const currentStep = stepIndex >= 0 && stepIndex < activeSteps.length ? activeSteps[stepIndex] : null;
 
+  const updateTelemetryForStep = (step: typeof SCENARIO_YES_STEPS[0]) => {
+    // 1. Update Agent Status Grid
+    setAgents(prev => prev.map(agent => {
+      if (agent.name === step.agent) {
+        return {
+          ...agent,
+          status: "Running",
+          task: step.action,
+          lastDecision: step.outcome,
+          confidence: Math.round(step.confidence * 1000) / 10,
+        };
+      }
+      return { ...agent, status: agent.name === "System Engine" ? "Idle" : "Idle" };
+    }));
+
+    // 2. Increment counters as step runs
+    setMetrics(prev => ({
+      ...prev,
+      ordersProcessed: prev.ordersProcessed + 1,
+      aiDecisionsToday: prev.aiDecisionsToday + 1,
+      moneySaved: prev.moneySaved + step.savings,
+      transfersOptimized: step.agent === "Regional AI" ? prev.transfersOptimized + 1 : prev.transfersOptimized,
+      stockoutsPrevented: step.node === "inventory" && scenario === "NO" ? prev.stockoutsPrevented + 1 : prev.stockoutsPrevented,
+    }));
+  };
+
   // Run simulation loops
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -223,7 +249,7 @@ export default function AICommandCenter() {
           updateTelemetryForStep(activeSteps[nextIndex]);
         }, 3000);
       } else {
-        setIsPlaying(false);
+        setTimeout(() => setIsPlaying(false), 0);
       }
     }
     return () => clearTimeout(timer);
@@ -262,31 +288,7 @@ export default function AICommandCenter() {
     setAgents(prev => prev.map(a => ({ ...a, status: "Idle" })));
   };
 
-  const updateTelemetryForStep = (step: typeof SCENARIO_YES_STEPS[0]) => {
-    // 1. Update Agent Status Grid
-    setAgents(prev => prev.map(agent => {
-      if (agent.name === step.agent) {
-        return {
-          ...agent,
-          status: "Running",
-          task: step.action,
-          lastDecision: step.outcome,
-          confidence: Math.round(step.confidence * 1000) / 10,
-        };
-      }
-      return { ...agent, status: agent.name === "System Engine" ? "Idle" : "Idle" };
-    }));
 
-    // 2. Increment counters as step runs
-    setMetrics(prev => ({
-      ...prev,
-      ordersProcessed: prev.ordersProcessed + 1,
-      aiDecisionsToday: prev.aiDecisionsToday + 1,
-      moneySaved: prev.moneySaved + step.savings,
-      transfersOptimized: step.agent === "Regional AI" ? prev.transfersOptimized + 1 : prev.transfersOptimized,
-      stockoutsPrevented: step.node === "inventory" && scenario === "NO" ? prev.stockoutsPrevented + 1 : prev.stockoutsPrevented,
-    }));
-  };
 
   // Node position helper inside SVGs
   const nodeCoords = {

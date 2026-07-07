@@ -123,4 +123,17 @@ nexus_ai/
    ```
    Open [http://localhost:3000](http://localhost:3000) inside your web browser.
 
+---
+
+## 5. Demo Credentials & Role Access
+
+For presentation and evaluation purposes (e.g., during live demos/judging), the system includes a pre-configured role database and support for local fallback authentication. If your Supabase instance is not configured, entering any password with the emails below will authenticate successfully into the designated role.
+
+| Role | Email / Username | Password | Notes / Scope |
+| :--- | :--- | :--- | :--- |
+| **CEO** | `ceo@nexuscare.com` | *Any password* (e.g., `password123`) | Global enterprise dashboard view, Command Center, full permissions. |
+| **Regional Manager** | `demo@nexuscare.com` | *Any password* (e.g., `password123`) | Regional dashboard view, inter-branch stock transfer approvals. |
+| **Branch Manager** | `manager@nexuscare.com` | *Any password* (e.g., `password123`) | Local branch operations, inventory, and local employee rosters. |
+| **Pharmacist** | `pharmacist@nexuscare.com` | *Any password* (e.g., `password123`) | POS order checkout, medicine inventories, prescription auditing. |
+
 

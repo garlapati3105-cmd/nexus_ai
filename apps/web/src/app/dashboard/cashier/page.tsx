@@ -147,8 +147,10 @@ export default function CashierPOS() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    queryMedicines();
+    const timer = setTimeout(() => queryMedicines(), 0);
+    return () => clearTimeout(timer);
   }, [medQuery]);
 
   // Cart operations
