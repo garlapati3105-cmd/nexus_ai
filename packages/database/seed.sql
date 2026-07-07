@@ -394,6 +394,29 @@ BEGIN
             'paid'
         );
     END LOOP;
+
+    -- Static Seeding for Dolo 650mg to ensure walk-in dashboard tests function
+    temp_uuid := 'd010c650-d010-4010-b010-101010101010'::UUID;
+    temp_batch_uuid := 'dbab4e50-dbab-4bab-abab-babababababa'::UUID;
+    
+    INSERT INTO medicines (id, category_id, manufacturer_id, sku, substance_name, brand_name, dosage_form, strength, requires_prescription)
+    VALUES (temp_uuid, v_med_cat_ids[1], v_manufacturer_ids[1], 'SKU-DOLO-650', 'Paracetamol', 'Dolo 650mg', 'Tablet', '650mg', FALSE)
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO medicine_batches (id, medicine_id, batch_number, manufacturing_date, expiry_date)
+    VALUES (temp_batch_uuid, temp_uuid, 'BAT-DOLO-000', '2025-01-01'::DATE, '2027-12-31'::DATE)
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO medicine_prices (medicine_id, branch_id, mrp, purchase_price, discount_percentage, is_active)
+    VALUES (temp_uuid, NULL, 30.00, 18.00, 0.00, TRUE)
+    ON CONFLICT DO NOTHING;
+
+    FOR i IN 1..10 LOOP
+        INSERT INTO inventory (id, branch_id, medicine_id, batch_id, quantity, reorder_level, max_level)
+        VALUES (uuid_generate_v4(), v_branch_ids[i], temp_uuid, temp_batch_uuid, 150, 15, 300)
+        ON CONFLICT (branch_id, batch_id) DO UPDATE 
+        SET quantity = EXCLUDED.quantity;
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
