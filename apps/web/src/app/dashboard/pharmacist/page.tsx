@@ -55,6 +55,97 @@ export default function PharmacistDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showStatusDialog, setShowStatusDialog] = useState<{ type: "success" | "reject"; message: string } | null>(null);
 
+  // Quick Dispense states
+  const [showQuickDispenseModal, setShowQuickDispenseModal] = useState(false);
+  const [qdFirstName, setQdFirstName] = useState("");
+  const [qdLastName, setQdLastName] = useState("");
+  const [qdPhone, setQdPhone] = useState("");
+  const [qdMedQuery, setQdMedQuery] = useState("");
+  const [qdSuggestedMeds, setQdSuggestedMeds] = useState<any[]>([]);
+  const [qdSelectedMed, setQdSelectedMed] = useState<any | null>(null);
+  const [qdQuantity, setQdQuantity] = useState<number>(1);
+  const [isQdSubmitting, setIsQdSubmitting] = useState(false);
+
+  // Auto-search medicine suggestions
+  useEffect(() => {
+    if (!qdMedQuery.trim()) {
+      setQdSuggestedMeds([]);
+      return;
+    }
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const url = activeBranch?.id 
+          ? `${API_BASE_URL}/cashier/medicines?search=${encodeURIComponent(qdMedQuery)}&branch_id=${activeBranch.id}`
+          : `${API_BASE_URL}/cashier/medicines?search=${encodeURIComponent(qdMedQuery)}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setQdSuggestedMeds(data);
+        }
+      } catch (e) {
+        console.error("Failed to query suggestions:", e);
+      }
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [qdMedQuery, activeBranch]);
+
+  const handleQuickDispenseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!qdSelectedMed) {
+      alert("Please select a medicine.");
+      return;
+    }
+    if (!activeBranch?.id) {
+      alert("No active branch session found.");
+      return;
+    }
+    setIsQdSubmitting(true);
+    try {
+      const payload = {
+        branch_id: activeBranch.id,
+        first_name: qdFirstName,
+        last_name: qdLastName,
+        phone: qdPhone,
+        medicine_id: qdSelectedMed.id,
+        quantity: qdQuantity,
+      };
+      const res = await fetch(`${API_BASE_URL}/pharmacist/direct-dispense`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setShowQuickDispenseModal(false);
+        setQdFirstName("");
+        setQdLastName("");
+        setQdPhone("");
+        setQdMedQuery("");
+        setQdSelectedMed(null);
+        setQdQuantity(1);
+        setQdSuggestedMeds([]);
+        
+        setShowStatusDialog({
+          type: "success",
+          message: `Direct walk-in dispensation completed. Stock for ${qdSelectedMed.brand_name} has been updated.`
+        });
+        
+        if (activeTab === "pending") {
+          fetchPendingOrders();
+        } else {
+          fetchHistory();
+        }
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Quick Dispense transaction failed.");
+      }
+    } catch (e) {
+      console.error("Direct dispense failed:", e);
+      alert("An unexpected error occurred.");
+    } finally {
+      setIsQdSubmitting(false);
+    }
+  };
+
   const fetchPendingOrders = async () => {
     setIsLoading(true);
     try {
@@ -176,6 +267,15 @@ export default function PharmacistDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowQuickDispenseModal(true)}
+            variant="default"
+            size="sm"
+            className="h-9 gap-1.5 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs rounded-lg"
+          >
+            <Pill className="w-3.5 h-3.5" />
+            Quick Dispense
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -439,6 +539,152 @@ export default function PharmacistDashboard() {
             </DialogFooter>
           </DialogContent>
         )}
+      </Dialog>
+
+      {/* Quick Dispense Dialog */}
+      <Dialog open={showQuickDispenseModal} onOpenChange={(open) => !open && setShowQuickDispenseModal(false)}>
+        <DialogContent className="max-w-md bg-zinc-950 border border-border/40 text-foreground overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <DialogHeader className="border-b border-border/20 pb-4">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Pill className="w-5 h-5 text-primary animate-bounce" style={{ animationDuration: '3s' }} />
+              Quick Direct Dispense
+            </DialogTitle>
+            <DialogDescription>
+              Register an immediate completed sale and adjust branch stock quantities.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleQuickDispenseSubmit} className="space-y-4 my-2 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">First Name</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. John"
+                  value={qdFirstName}
+                  onChange={(e) => setQdFirstName(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-card border border-border/30 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 bg-zinc-900/15 placeholder-muted-foreground/50"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">Last Name</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. Doe"
+                  value={qdLastName}
+                  onChange={(e) => setQdLastName(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-card border border-border/30 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 bg-zinc-900/15 placeholder-muted-foreground/50"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">Mobile Number</label>
+              <input
+                required
+                type="tel"
+                placeholder="e.g. +91 99999 99999"
+                value={qdPhone}
+                onChange={(e) => setQdPhone(e.target.value)}
+                className="w-full px-3 py-1.5 bg-card border border-border/30 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 bg-zinc-900/15 placeholder-muted-foreground/50"
+              />
+            </div>
+
+            <div className="space-y-1 relative font-sans">
+              <label className="text-xs font-semibold text-muted-foreground">Search Medicine</label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
+                <input
+                  type="text"
+                  placeholder="Search brand name (e.g. Dolo)..."
+                  value={qdMedQuery}
+                  onChange={(e) => {
+                    setQdMedQuery(e.target.value);
+                    if (qdSelectedMed) setQdSelectedMed(null);
+                  }}
+                  className="w-full pl-8 pr-3 py-1.5 bg-card border border-border/30 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 bg-zinc-900/15 placeholder-muted-foreground/50"
+                />
+              </div>
+
+              {qdSuggestedMeds.length > 0 && !qdSelectedMed && (
+                <div className="absolute left-0 right-0 top-[100%] mt-1 bg-zinc-900 border border-border/40 rounded shadow-lg max-h-48 overflow-y-auto z-50">
+                  {qdSuggestedMeds.map((med) => (
+                    <button
+                      key={med.id}
+                      type="button"
+                      onClick={() => {
+                        setQdSelectedMed(med);
+                        setQdMedQuery(med.brand_name);
+                        setQdSuggestedMeds([]);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs border-b border-border/10 hover:bg-secondary/40 flex justify-between items-center"
+                    >
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-foreground">{med.brand_name}</span>
+                        <span className="text-[10px] text-muted-foreground block">{med.substance_name} • {med.strength}</span>
+                      </div>
+                      <Badge variant="outline" className={med.available_stock > 0 ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/5 text-[10px]" : "border-rose-500/30 text-rose-500 bg-rose-500/5 text-[10px]"}>
+                        Stock: {med.available_stock}
+                      </Badge>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {qdSelectedMed && (
+                <div className="mt-2 p-2 bg-primary/5 rounded border border-primary/20 flex justify-between items-center text-xs">
+                  <div>
+                    <span className="font-semibold text-foreground block">{qdSelectedMed.brand_name}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{qdSelectedMed.substance_name}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground block text-[10px]">MRP: ₹{qdSelectedMed.mrp}</span>
+                    <span className="font-semibold text-emerald-400">Available: {qdSelectedMed.available_stock}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">Quantity</label>
+              <input
+                required
+                type="number"
+                min="1"
+                max={qdSelectedMed ? qdSelectedMed.available_stock : undefined}
+                value={qdQuantity}
+                onChange={(e) => setQdQuantity(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-1.5 bg-card border border-border/30 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 bg-zinc-900/15"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-border/20">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowQuickDispenseModal(false);
+                  setQdSuggestedMeds([]);
+                }}
+                className="border-border/30 hover:bg-secondary/40 text-xs h-9"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isQdSubmitting || !qdSelectedMed || qdSelectedMed.available_stock <= 0 || qdQuantity > qdSelectedMed.available_stock}
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs h-9"
+              >
+                {isQdSubmitting ? "Dispensing..." : "Confirm Dispense"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
       </Dialog>
 
       {/* Success/Rejected Status Dialog */}
