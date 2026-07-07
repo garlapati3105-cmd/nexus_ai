@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/context/SessionContext";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,35 @@ import * as motion from "framer-motion/client";
 
 export default function DashboardRouter() {
   const { currentRole, activeBranch } = useSession();
+  const router = useRouter();
 
   // Route landing based on roles
   const roleName = currentRole ? currentRole.toUpperCase() : "GUEST";
+
+  useEffect(() => {
+    if (!currentRole) return;
+    const roleUpper = currentRole.toUpperCase();
+    if (roleUpper === "PHARMACIST") {
+      router.replace("/dashboard/pharmacist");
+    } else if (roleUpper === "CASHIER") {
+      router.replace("/dashboard/cashier");
+    } else if (roleUpper === "INVENTORY") {
+      router.replace("/dashboard/inventory");
+    } else if (roleUpper === "FINANCE") {
+      router.replace("/dashboard/finance");
+    }
+  }, [currentRole, router]);
+
+  if (["PHARMACIST", "CASHIER", "INVENTORY", "FINANCE"].includes(roleName)) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">Redirecting to workspace...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (roleName === "BRANCH_MANAGER") {
     return <BranchManagerDashboardView activeBranch={activeBranch} />;
@@ -26,8 +53,16 @@ export default function DashboardRouter() {
     return <RegionalManagerDashboardView />;
   }
 
-  // DEFAULT (CEO or ADMIN)
-  return <CEODashboardView />;
+  if (roleName === "CEO" || roleName === "ADMIN") {
+    return <CEODashboardView />;
+  }
+
+  // Fallback for custom/unhandled roles
+  return (
+    <div className="flex h-[60vh] w-full items-center justify-center">
+      <p className="text-sm text-muted-foreground font-medium">Welcome to Nexus AI. Access your workflow via the sidebar panel.</p>
+    </div>
+  );
 }
 
 // ----------------------------------------------------
