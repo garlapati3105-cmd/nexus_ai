@@ -133,7 +133,7 @@ function CEODashboardView() {
       </motion.div>
 
       {/* Extreme Density KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map((kpi, i) => (
           <motion.div key={kpi.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 + 0.1 }}>
             <Card className="bg-background border-border/40 shadow-sm hover:shadow-md transition-shadow group">
@@ -278,7 +278,7 @@ function RegionalManagerDashboardView() {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="bg-background border-border/40">
             <CardContent className="p-5">
@@ -296,7 +296,7 @@ function RegionalManagerDashboardView() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-background border-border/40 col-span-2 md:col-span-1">
           <CardHeader>
             <CardTitle className="text-lg">Branch Performance</CardTitle>
@@ -367,7 +367,7 @@ function BranchManagerDashboardView({ activeBranch }: { activeBranch: any }) {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="bg-background border-border/40">
             <CardContent className="p-5">
@@ -385,7 +385,7 @@ function BranchManagerDashboardView({ activeBranch }: { activeBranch: any }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Local Orders list */}
         <Card className="col-span-3 lg:col-span-2 bg-background border-border/40">
           <CardHeader>

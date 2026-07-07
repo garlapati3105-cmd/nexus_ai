@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSession } from "@/context/SessionContext";
-import { Bell, Search, Hexagon, Command, Sparkles, X, Send, Bot } from "lucide-react";
+import { Bell, Search, Hexagon, Command, Sparkles, X, Send, Bot, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Topbar() {
+export function Topbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const { profile, currentRole, activeBranch } = useSession();
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -58,15 +58,24 @@ export function Topbar() {
 
   return (
     <>
-      <div className="h-14 border-b border-border/40 bg-background/80 backdrop-blur-md flex justify-between items-center px-6 sticky top-0 z-50">
-        <div className="flex items-center w-full max-w-md">
+      <div className="h-14 border-b border-border/40 bg-background/80 backdrop-blur-md flex justify-between items-center px-4 md:px-6 sticky top-0 z-50 gap-4">
+        <div className="flex items-center gap-3 w-full max-w-md">
+          {/* Hamburger Menu Toggle for mobile/tablet */}
+          <button 
+            onClick={onMenuToggle}
+            className="lg:hidden p-1.5 rounded-md hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
           {/* Vercel-style Command Palette Trigger */}
           <button onClick={() => alert("Search features coming soon!")} className="flex items-center justify-between w-full h-9 px-3 bg-secondary/30 hover:bg-secondary/50 border border-border/50 rounded-md transition-colors text-sm text-muted-foreground group">
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <span className="font-medium">Search or jump to...</span>
+              <span className="font-medium hidden sm:inline">Search or jump to...</span>
+              <span className="font-medium inline sm:hidden text-xs">Search...</span>
             </div>
-            <div className="flex items-center space-x-1">
+            <div className="hidden sm:flex items-center space-x-1">
               <kbd className="bg-background border border-border/40 px-1.5 py-0.5 rounded text-[10px] font-mono shadow-sm">⌘</kbd>
               <kbd className="bg-background border border-border/40 px-1.5 py-0.5 rounded text-[10px] font-mono shadow-sm">K</kbd>
             </div>
